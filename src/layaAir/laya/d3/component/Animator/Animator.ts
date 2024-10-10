@@ -309,7 +309,7 @@ export class Animator extends Component {
     /**
      * @internal
      */
-    private _updatePlayer(animatorState: AnimatorState, playState: AnimatorPlayState, elapsedTime: number, islooping: boolean, layerIndex: number): void {
+    private _updatePlayer(animatorState: AnimatorState, playState: AnimatorPlayState, elapsedTime: number, islooping: boolean, layerIndex: number, needApplyTransition = true): void {
         var clipDuration: number = animatorState._clip!._duration * (animatorState.clipEnd - animatorState.clipStart);
         var lastElapsedTime: number = playState._elapsedTime;
         var elapsedPlaybackTime: number = lastElapsedTime + elapsedTime;
@@ -335,7 +335,7 @@ export class Animator extends Component {
         }
 
         (!playState._finish) && animatorState._eventStateUpdate(playState._normalizedPlayTime);
-        this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
+        needApplyTransition && this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
         return;
     }
 
@@ -348,6 +348,19 @@ export class Animator extends Component {
     private _applyTransition(state: AnimatorState, layerindex: number, transition: AnimatorTransition) {
         if (!transition || transition == state.curTransition)
             return;
+
+        // bug描述：当idle -> attack时，在过渡时间内，继续触发transition，切换到move，这时idle的curTransition就不会被清空了，因为idle的动作是循环的，永远不会进入finish阶段
+        // bug表现：在attack->idle->move的连续切换过程中，需要等到attack->idle的动画完成过渡后，才会切换到move，而不是直接切换到move
+        // fix: 当设置curTransition的时候，应该把同一个layer的其他state的curTransition设置为null // dming ---fix bug
+        const controllerLayer = this._controllerLayers[layerindex];
+        for (let i = 0; i < controllerLayer.states.length; i++) {
+            const s = controllerLayer.states[i];
+            if (s !== state) {
+                s.curTransition = null!;
+            }
+        }
+        state.curTransition = transition;
+
         state.curTransition = transition;
         this.crossFade(transition.destState.name, transition.transduration, layerindex, transition.transstartoffset);
     }
@@ -1411,7 +1424,13 @@ export class Animator extends Component {
                     var clip: AnimationClip = animatorState._clip!;
                     var speed: number = this._speed * animatorState.speed;
                     var finish: boolean = playStateInfo._finish;//提前取出finish,防止最后一帧跳过
-                    finish || this._updatePlayer(animatorState, playStateInfo, delta * speed, animatorState.islooping, i);
+                    if (finish && !animatorState.islooping) {
+                        // dming --fix bug 即使状态播放完了，也应该不停的测试过渡条件，否则会导致状态机无法正常切换状态
+                        this._applyTransition(animatorState, i, animatorState._eventtransition(playStateInfo._normalizedPlayTime, this.animatorParams)!);
+                    } else {
+                        this._updatePlayer(animatorState, playStateInfo, delta * speed, animatorState.islooping, i);
+                    }
+
                     if (needRender) {
                         var addtive: boolean = controllerLayer.blendingMode !== AnimatorControllerLayer.BLENDINGMODE_OVERRIDE;
                         this._updateClipDatas(animatorState, addtive, playStateInfo, controllerLayer.avatarMask);//clipDatas为逐动画文件,防止两个使用同一动画文件的Animator数据错乱,即使动画停止也要updateClipDatas
@@ -1430,7 +1449,8 @@ export class Animator extends Component {
                     var crossClipDuration: number = crossClip._duration - startPlayTime;
                     var crossScale: number = (crossDuratuion > crossClipDuration && 0 != crossClipDuration) ? crossClipDuration / crossDuratuion : 1.0;//如果过度时间大于过度动作时间,则减慢速度
                     var crossSpeed: number = this._speed * crossState.speed;
-                    this._updatePlayer(crossState, crossPlayStateInfo, delta * crossScale * crossSpeed, crossClip.islooping, i);
+                    this._updatePlayer(crossState, crossPlayStateInfo, delta * crossScale * crossSpeed, crossState.islooping, i);//dming ---fix bug crossClip.islooping to crossState.islooping
+                    crossState = controllerLayer._crossPlayState; //dming ---fix bug
                     var crossWeight: number = ((crossPlayStateInfo._elapsedTime - startPlayTime) / crossScale) / crossDuratuion;
                     var needUpdateFinishcurrentState = false;
                     if (crossWeight >= 1.0) {
@@ -1446,7 +1466,10 @@ export class Animator extends Component {
                         if (!playStateInfo._finish) {
                             speed = this._speed * animatorState.speed;
                             needUpdateFinishcurrentState = true;
-                            this._updatePlayer(animatorState, playStateInfo, delta * speed, animatorState.islooping, i);
+                            // dming ---fix bug 这时候就不要管animatorState是否需要测试过度条件了，因为需要融合切换到crossState里了
+                            // 但是又不能不调用_updatePlayer，因为这会导致playStateInfo.state无法触发动画结束事件。所以给needApplyTransition传false
+                            this._updatePlayer(animatorState, playStateInfo, delta * speed, animatorState.islooping, i, false);
+                            crossState = controllerLayer._crossPlayState; //dming ---fix bug
                             if (needRender)
                                 this._updateClipDatas(animatorState, addtive, playStateInfo, controllerLayer.avatarMask);
                         }
