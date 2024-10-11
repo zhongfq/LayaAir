@@ -66,7 +66,9 @@ export class DrawTrianglesCmd {
      * @en Color transformation.
      * @zh 颜色变换。
      */
-    color: number | null;
+    color: number | number[] | null;
+
+    drawTriUseAbsMatrix: boolean = false;
 
     /**
      * @en Create a DrawTrianglesCmd instance
@@ -95,7 +97,7 @@ export class DrawTrianglesCmd {
      * @returns 绘制三角形命令实例
      */
     static create(texture: Texture, x: number, y: number, vertices: Float32Array, uvs: Float32Array, indices: Uint16Array,
-        matrix: Matrix | null, alpha: number, color: string | number, blendMode: string | null): DrawTrianglesCmd {
+        matrix: Matrix | null, alpha: number, color: string | number | number[], blendMode: string | null): DrawTrianglesCmd {
         var cmd: DrawTrianglesCmd = Pool.getItemByClass("DrawTrianglesCmd", DrawTrianglesCmd);
         cmd.texture = texture;
         cmd.x = x;
@@ -105,7 +107,7 @@ export class DrawTrianglesCmd {
         cmd.indices = indices;
         cmd.matrix = matrix;
         cmd.alpha = alpha;
-        cmd.color = color != null ? ColorUtils.create(color).numColor : 0xffffffff;
+        cmd.color = color == null ? 0xffffff : typeof (color) == 'string' ? ColorUtils.create(color).numColor : color;
         cmd.blendMode = blendMode;
         return cmd;
     }
@@ -123,6 +125,7 @@ export class DrawTrianglesCmd {
         Pool.recover("DrawTrianglesCmd", this);
     }
 
+
     /**
      * @en Execute the drawing triangles command
      * @param context The rendering context
@@ -134,7 +137,11 @@ export class DrawTrianglesCmd {
      * @param gy 全局Y偏移  
      */
     run(context: Context, gx: number, gy: number): void {
-        context.drawTriangles(this.texture, this.x + gx, this.y + gy, this.vertices, this.uvs, this.indices, this.matrix, this.alpha, this.blendMode, this.color);
+        if (this.drawTriUseAbsMatrix && this.matrix) {
+            context.drawTrianglesAbs(this.texture, this.x + gx, this.y + gy, this.vertices, this.uvs, this.indices, this.matrix, this.alpha, this.blendMode, this.color);
+        } else {
+            context.drawTriangles(this.texture, this.x + gx, this.y + gy, this.vertices, this.uvs, this.indices, this.matrix, this.alpha, this.blendMode, this.color);
+        }
     }
 
     /**
