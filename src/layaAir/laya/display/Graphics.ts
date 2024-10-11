@@ -72,7 +72,7 @@ export class Graphics {
      * @en Global shaderData
      * @zh 全局着色器数据
      */
-    static get globalShaderData() : ShaderData {
+    static get globalShaderData(): ShaderData {
         return Value2D.globalShaderData;
     }
 
@@ -400,8 +400,15 @@ export class Graphics {
      * @param blendMode （可选）混合模式。默认为null。
      */
     drawTriangles(texture: Texture, x: number, y: number, vertices: Float32Array, uvs: Float32Array, indices: Uint16Array, matrix: Matrix | null = null,
-        alpha: number = 1, color: string | number = null, blendMode: string | null = null): DrawTrianglesCmd {
+        alpha: number = 1, color: string | number | number[] = null, blendMode: string | null = null): DrawTrianglesCmd {
         return this.addCmd(DrawTrianglesCmd.create(texture, x, y, vertices, uvs, indices, matrix, alpha, color, blendMode));
+    }
+
+    drawTrianglesAbs(texture: Texture, x: number, y: number, vertices: Float32Array, uvs: Float32Array, indices: Uint16Array, matrix: Matrix,
+        alpha: number = 1, color: string | number | number[] = null, blendMode: string | null = null): DrawTrianglesCmd {
+        const cmd = DrawTrianglesCmd.create(texture, x, y, vertices, uvs, indices, matrix, alpha, color, blendMode);
+        cmd.drawTriUseAbsMatrix = true;
+        return this.addCmd(cmd);
     }
 
     /**

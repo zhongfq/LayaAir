@@ -2530,9 +2530,6 @@ export class Sprite extends Node {
         }
     }
 
-    /**
-     * @internal
-     */
     set globalRotation(value: number) {
         if (value == this.globalRotation) {
             return;
