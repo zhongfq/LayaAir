@@ -1303,12 +1303,23 @@ export class Context {
         }
     }
 
+    drawTrianglesAbs(tex: Texture,
+        x: number, y: number,
+        vertices: Float32Array,
+        uvs: Float32Array,
+        indices: Uint16Array,
+        matrix: Matrix, alpha: number | null, blendMode: string, colorNum: number | number[] = 0xffffffff): void {
+        this._drawTriUseAbsMatrix = true;
+        this.drawTriangles(tex, x, y, vertices, uvs, indices, matrix, alpha, blendMode, colorNum);
+        this._drawTriUseAbsMatrix = false;
+    }
+
     drawTriangles(tex: Texture,
         x: number, y: number,
         vertices: Float32Array,
         uvs: Float32Array,
         indices: Uint16Array,
-        matrix: Matrix, alpha: number | null, blendMode: string, colorNum = 0xffffffff): void {
+        matrix: Matrix, alpha: number | null, blendMode: string, colorNum: number | number[] = 0xffffffff): void {
 
         if (alpha == null) alpha = 1.0;
 
@@ -1352,7 +1363,8 @@ export class Context {
             submit.clipInfoID = this._clipInfoID;
         }
 
-        var rgba = this._mixRGBandAlpha(colorNum, this._alpha * alpha);
+        const nAlpth = this._alpha * alpha;
+        var rgba = Array.isArray(colorNum) ? colorNum.map(v => this._mixRGBandAlpha(v, nAlpth)) : this._mixRGBandAlpha(colorNum, nAlpth);
         if (!this._drawTriUseAbsMatrix) {
             if (!matrix) {
                 tmpMat.a = 1; tmpMat.b = 0; tmpMat.c = 0; tmpMat.d = 1; tmpMat.tx = x; tmpMat.ty = y;
