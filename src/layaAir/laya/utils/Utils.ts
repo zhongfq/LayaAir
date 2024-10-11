@@ -47,7 +47,14 @@ export class Utils {
      * @return 字符串型颜色值。
      */
     static toHexColor(color: number): string {
-        if (color < 0 || isNaN(color)) return null;
+        if (isNaN(color)) {
+            console.warn("invalid color: " + color);
+            return "#00000000";
+        }
+        if (color < 0) {
+            color += 0x100000000;
+        }
+        color = color < 0 ? 0 : color;
         var str: string = color.toString(16);
         while (str.length < 6) str = "0" + str;
         return "#" + str;
