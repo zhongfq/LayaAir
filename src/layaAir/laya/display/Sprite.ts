@@ -1762,15 +1762,15 @@ export class Sprite extends Node {
         value && value.length === 0 && (value = null);
 
         //先去掉旧的事件监听
-        if(this._filterArr){
-            for(let f of this._filterArr){
-                f && f.off(Filter.EVENT_CHANGE,this,this.repaint);
+        if (this._filterArr) {
+            for (let f of this._filterArr) {
+                f && f.off(Filter.EVENT_CHANGE, this, this.repaint);
             }
         }
         this._filterArr = value ? value.slice() : null;
-        if(value){
-            for(let f of value){
-                f && f.on(Filter.EVENT_CHANGE,this,this.repaint);
+        if (value) {
+            for (let f of value) {
+                f && f.on(Filter.EVENT_CHANGE, this, this.repaint);
             }
         }
         if (value)
@@ -2389,7 +2389,6 @@ export class Sprite extends Node {
     }
 
     /**
-     * @internal
      * @en Get the global matrix of the sprite.
      * @returns The global transformation matrix of the sprite.
      * @zh 获取精灵的全局矩阵。
@@ -2453,7 +2452,6 @@ export class Sprite extends Node {
     }
 
     /**
-     * @internal
      * @en The X-axis position in global coordinates.
      * @zh 全局坐标中的 X 轴位置。
      */
@@ -2477,7 +2475,6 @@ export class Sprite extends Node {
     }
 
     /**
-     * @internal
      * @en The Y-axis position in global coordinates.
      * @zh 全局坐标中的 Y 轴位置。
      */
@@ -2506,7 +2503,6 @@ export class Sprite extends Node {
     }
 
     /**
-     * @internal
      * @en global rotation value relative to the stage (this value includes the rotation of parent nodes).
      * @zh 相对于stage的全局旋转值（会叠加父亲节点的旋转值）。
      */
@@ -2534,6 +2530,9 @@ export class Sprite extends Node {
         }
     }
 
+    /**
+     * @internal
+     */
     set globalRotation(value: number) {
         if (value == this.globalRotation) {
             return;
