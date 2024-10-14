@@ -40,9 +40,9 @@ export class MeshTexture extends Sprite2DGeometry {
      * @param uvs 
      * @param idx 
      * @param matrix 
-     * @param rgba 
+     * @param abgr 
      */
-    addData(vertices: Float32Array, uvs: Float32Array, idx: Uint16Array, matrix: Matrix, rgba: number | number[], uvrect: number[] = null): void {
+    addData(vertices: Float32Array, uvs: Float32Array, idx: Uint16Array, matrix: Matrix, abgr: number | number[], uvrect: number[] = null): void {
         //vb
         let addVert = vertices.length / 2;
         this.expVBSize(addVert * MeshTexture.const_stride);
@@ -72,21 +72,21 @@ export class MeshTexture extends Sprite2DGeometry {
         }
 
 
-        let g, b, a, r;
-        if (typeof (rgba) == "number") {
-            r = (rgba >>> 24) / 255.0;
-            g = ((rgba >>> 16) & 0xff) / 255.0;
-            b = ((rgba >>> 8) & 0xff) / 255.0;
-            a = (rgba & 0xff) / 255.0;
+        let b, g, r, a;
+        if (typeof (abgr) == "number") {
+            a = (abgr >>> 24) / 255.0;
+            b = ((abgr >>> 16) & 0xff) / 255.0;
+            g = ((abgr >>> 8) & 0xff) / 255.0;
+            r = (abgr & 0xff) / 255.0;
         }
 
         for (i = 0; i < vertsz; i++) {
-            if (Array.isArray(rgba)) {
-                const _rgba = rgba[(ci / 8) | 0];
-                r = (_rgba >>> 24) / 255.0;
-                g = ((_rgba >>> 16) & 0xff) / 255.0;
-                b = ((_rgba >>> 8) & 0xff) / 255.0;
-                a = (_rgba & 0xff) / 255.0;
+            if (Array.isArray(abgr)) {
+                const _abrg = abgr[(ci / 8) | 0];
+                a = (_abrg >>> 24) / 255.0;
+                b = ((_abrg >>> 16) & 0xff) / 255.0;
+                g = ((_abrg >>> 8) & 0xff) / 255.0;
+                r = (_abrg & 0xff) / 255.0;
             }
 
 
@@ -96,10 +96,10 @@ export class MeshTexture extends Sprite2DGeometry {
             vbdata[f32pos + 2] = uvminx + uvs[ci] * uvu;
             vbdata[f32pos + 3] = uvminy + uvs[ci + 1] * uvv;
 
-            vbdata[f32pos + 4] = a;
-            vbdata[f32pos + 5] = b;
-            vbdata[f32pos + 6] = g;
-            vbdata[f32pos + 7] = r;
+            vbdata[f32pos + 4] = r;
+            vbdata[f32pos + 5] = g;
+            vbdata[f32pos + 6] = b;
+            vbdata[f32pos + 7] = a;
             vbdata[f32pos + 8] = 0xff;
             f32pos += 12;
             ci += 2;
