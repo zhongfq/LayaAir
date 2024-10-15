@@ -4,7 +4,6 @@ import { RenderStateContext } from "../../RenderEngine/RenderStateContext";
 //export type BlendFunc = (gl:WebGLRenderingContext)=>void
 export class BlendMode {
     static activeBlendFunction: Function = null;
-    /** @internal 这个不直接暴露给开发者*/
     static NAMES = [
         "normal",
         "add",
