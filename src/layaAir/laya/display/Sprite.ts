@@ -1872,6 +1872,40 @@ export class Sprite extends Node {
     }
 
     /**
+     * 注意Transform的tx，ty均为0
+     */
+    toGlobalTransform(out?: Matrix, globalNode: Sprite | null = null): Matrix {
+        if (!out) out = new Matrix();
+        const tempMat = new Matrix();
+        out.identity();
+        globalNode = globalNode || ILaya.stage;
+        let ele: Sprite = this;
+        while (ele && !ele._destroyed) {
+            if (ele == globalNode) break;
+            ele.toParentTransform(tempMat)
+            Matrix.mul(tempMat, out, out);
+            ele = ele.parent as Sprite;
+        }
+        return out;
+    }
+
+    /**
+     * 注意Transform的tx，ty均为0
+     */
+    toParentTransform(out?: Matrix): Matrix {
+        if (!out) out = new Matrix();
+        if (!this._transform) {
+            this._adjustTransform();
+        }
+        const t = this.transform;
+        out.a = t.a;
+        out.b = t.b;
+        out.c = t.c;
+        out.d = t.d;
+        return out;
+    }
+
+    /**
      * @en Converts the coordinates in the parent container coordinate system to the coordinates in the local coordinate system.
      * @param point The point in the parent container coordinate system.
      * @return The converted point in the local coordinate system.
