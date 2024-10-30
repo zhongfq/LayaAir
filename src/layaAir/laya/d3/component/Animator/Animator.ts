@@ -1459,8 +1459,22 @@ export class Animator extends Component {
                     break;
             }
         }
+
         this._LateUpdateEvents.invoke();
         this._LateUpdateEvents.clear();
+
+        // 特殊处理 tOnce 开头的参数
+        for (const id in this._animatorParams) {
+            const name = AnimatorStateCondition.conditionIDToName(+id);
+            if (!name) {
+                console.error("Animator: unknown condition id", id);
+                continue;
+            }
+            const v = this._animatorParams[id];
+            if (name.startsWith("tOnce") && typeof v === "boolean") {
+                this._animatorParams[id] = false;
+            }
+        }
     }
 
     /**
