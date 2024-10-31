@@ -33,12 +33,12 @@ export class ShaderPass extends ShaderCompileDefineBase {
     /**@internal */
     _nodeUniformCommonMap: Array<string>;
 
-     set nodeCommonMap(value: Array<string>) {
+    set nodeCommonMap(value: Array<string>) {
         this._nodeUniformCommonMap = value;
         this.moduleData.nodeCommonMap = value;
     }
 
-    get nodeCommonMap() :Array<string>{
+    get nodeCommonMap(): Array<string> {
         return this._nodeUniformCommonMap;
     }
 
@@ -103,7 +103,7 @@ export class ShaderPass extends ShaderCompileDefineBase {
         var shader: IShaderInstance = this.moduleData.getCacheShader(compileDefine);
         if (shader)
             return shader;
-        // console.log("compile");
+
         shader = ShaderPass.createShaderInstance(this, IS2d, compileDefine);
         this.moduleData.setCacheShader(compileDefine, shader);
         return shader;
