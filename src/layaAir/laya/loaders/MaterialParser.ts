@@ -52,7 +52,16 @@ export class MaterialParser {
                     for (let i = 0, n = textures.length; i < n; i++) {
                         let texture: any = textures[i];
                         let path: string = texture.path;
-                        (path) && (mat._shaderValues.setTexture(Shader3D.propertyNameToID(texture.name), Loader.getBaseTexture(path)));
+                        if (path) {
+                            const tex = Loader.getBaseTexture(path);
+                            if (tex) {
+                                mat._shaderValues.setTexture(Shader3D.propertyNameToID(texture.name), tex);
+                            } else if (Loader.getRes(path)) {
+                                console.error(`texture '${path}' format error`);
+                            } else {
+                                console.error(`texture '${path}' not found`);
+                            }
+                        }
                     }
                     break;
                 case "renderQueue":
