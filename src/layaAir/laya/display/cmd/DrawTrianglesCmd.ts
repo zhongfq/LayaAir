@@ -108,7 +108,7 @@ export class DrawTrianglesCmd {
         cmd.indices = indices;
         cmd.matrix = matrix;
         cmd.alpha = alpha;
-        cmd.color = color == null ? 0xffffff : typeof (color) == 'string' ? ColorUtils.create(color).numColor : color;
+        cmd.color = color == null ? 0xffffffff : typeof (color) == 'string' ? ColorUtils.create(color).numColor : color;
         cmd.blendMode = blendMode;
         return cmd;
     }
