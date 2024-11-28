@@ -318,9 +318,12 @@ export class Component {
 
         if (LayaEnv.isPlaying || this.runInEditor) {
             let driver = (this.owner._is3D && this.owner._scene)?._componentDriver || ILaya.stage._componentDriver;
+            this.onPreDestroy?.();
             driver._toDestroys.add(this);
         }
     }
+
+    protected onPreDestroy?(): void
 
     /**
      * @en Called after the component is added to a node. Unlike Awake, onAdded is called even if the node is not active.
