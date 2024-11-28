@@ -297,8 +297,10 @@ export class Component {
 
         if (this.owner)
             this.owner._destroyComponent(this);
-        else if (!this.destroyed)
+        else if (!this.destroyed) {
+            this.onPreDestroy?.();
             this._destroy(true);
+        }
     }
 
     /**
@@ -321,6 +323,7 @@ export class Component {
         }
 
         this._setActive(false);
+        this.onPreDestroy?.();
         this._status = 4;
 
         if (LayaEnv.isPlaying || this.runInEditor) //如果未激活过，this._driver为空
@@ -393,6 +396,12 @@ export class Component {
      */
     onDisable(): void {
     }
+
+     /**
+     * @en Executed when the node is before destroyed manually.
+     * @zh 手动调用节点销毁前执行。
+     */
+    onPreDestroy?(): void
 
     /**
      * @en Executed when the node is destroyed manually.

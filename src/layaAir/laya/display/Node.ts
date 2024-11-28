@@ -286,6 +286,8 @@ export class Node extends EventDispatcher {
      * @param destroyChild 是否同时销毁子节点,若值为true,则销毁子节点,否则不销毁子节点。
      */
     destroy(destroyChild: boolean = true): void {
+        this.onPreDestroy();
+
         this._destroyed = true;
         this.destroyAllComponent();
         this._parent && this._parent.removeChild(this);
@@ -301,6 +303,13 @@ export class Node extends EventDispatcher {
 
         //移除所有事件监听
         this.offAll();
+    }
+
+    /**
+    * @en The callback function when the node is before destroyed. This is a virtual method. You can override it for custom logic when the node is about to be destroyed.
+    * @zh 节点被销毁前执行的回调函数。此方法为虚方法，使用时重写覆盖即可。
+    */
+    onPreDestroy(): void {
     }
 
 
