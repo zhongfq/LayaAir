@@ -1889,9 +1889,9 @@ export class Sprite extends Node {
         globalNode = globalNode || ILaya.stage;
         let ele: Sprite = this;
         while (ele && !ele._destroyed) {
-            if (ele == globalNode) break;
-            ele.toParentTransform(tempMat)
+            ele.toParentTransform(tempMat);
             Matrix.mul(tempMat, out, out);
+            if (ele == globalNode) break;
             ele = ele.parent as Sprite;
         }
         return out;
