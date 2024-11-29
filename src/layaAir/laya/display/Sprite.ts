@@ -638,7 +638,7 @@ export class Sprite extends Node {
 
         if (this._renderNode) {
             rec = Rectangle.TEMP;
-            rec.setTo(0, 0, this.width , this.height);
+            rec.setTo(0, 0, this.width, this.height);
             pList.push(...rec._getBoundPoints());
         }
 
@@ -648,7 +648,7 @@ export class Sprite extends Node {
             pList.push(...rec._getBoundPoints());
         }
 
-       
+
         //处理子对象区域
         let chidren = this._children;
         for (let i = 0, n = chidren.length; i < n; i++) {
@@ -1889,9 +1889,9 @@ export class Sprite extends Node {
         globalNode = globalNode || ILaya.stage;
         let ele: Sprite = this;
         while (ele && !ele._destroyed) {
-            if (ele == globalNode) break;
-            ele.toParentTransform(tempMat)
+            ele.toParentTransform(tempMat);
             Matrix.mul(tempMat, out, out);
+            if (ele == globalNode) break;
             ele = ele.parent as Sprite;
         }
         return out;
