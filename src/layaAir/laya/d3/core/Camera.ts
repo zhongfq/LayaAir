@@ -1427,6 +1427,8 @@ export class Camera extends BaseCamera {
         scene._componentDriver.callPostRender();
     }
 
+    private _tmpPoint = new Vector2();
+
     /**
      * @en Calculate a ray from screen space.
      * @param point The position in screen space.
@@ -1436,12 +1438,12 @@ export class Camera extends BaseCamera {
      * @param out  输出射线。
      */
     viewportPointToRay(point: Vector2, out: Ray): void {
-        point.setValue(point.x * ILaya.stage.clientScaleX, point.y * ILaya.stage.clientScaleY);
+        this._tmpPoint.setValue(point.x * ILaya.stage.clientScaleX, point.y * ILaya.stage.clientScaleY);
         this._rayViewport.x = this.viewport.x;
         this._rayViewport.y = this.viewport.y;
         this._rayViewport.width = this.viewport.width;
         this._rayViewport.height = this.viewport.height;
-        Picker.calculateCursorRay(point, this._rayViewport, this._projectionMatrix, this.viewMatrix, null, out);
+        Picker.calculateCursorRay(this._tmpPoint, this._rayViewport, this._projectionMatrix, this.viewMatrix, null, out);
     }
 
     /**
