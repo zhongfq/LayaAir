@@ -8,7 +8,7 @@ export class WordText {
      * @en The text content.
      * @zh 文本内容。
      */
-    text: string;
+    text: string = "";
     /**
      * @en The width of the entire WordText. -1 indicates it hasn't been calculated yet.
      * @zh 整个 WordText 的宽度。-1 表示还没有计算。
@@ -18,17 +18,17 @@ export class WordText {
      * @en The text information saved by grouping the characters of this object into texture groups. Inside is another array. The specific meaning can be found in the place of use.
      * @zh 把本对象的字符按照texture分组保存的文字信息。里面又是一个数组。具体含义见使用的地方。
      */
-    pageChars: any[];	
+    pageChars: any[];
     /**
      * @en The ctx used for caching above. When crossing ctx (such as drawToTexture), it needs to be cleaned up, (because the settings for different ctx are different?). Set to any to indicate no concern for specific types, only for comparison purposes
      * @zh 上面缓存的时候用的ctx。跨ctx的时候（例如drawToTexture）要清理，（因为不同的ctx的设置不同？）。设置为any表示不关心具体类型，只是用来比较的
      */
-    pagecharsCtx: any = null;  
+    pagecharsCtx: any = null;
     /**
      * @en Horizontal scale cached during rendering.
      * @zh 渲染时缓存的水平缩放。
      */
-    scalex;	
+    scalex;
     /**
      * @en Vertical scale cached during rendering.
      * @zh 渲染时缓存的垂直缩放。
@@ -52,6 +52,10 @@ export class WordText {
      * @param txt 要设置的文本。
      */
     setText(txt: string): void {
+        if (txt === undefined) {
+            console.error("unsupport setText  ", txt);
+            return;
+        }
         this.text = txt;
         if (this._nativeObj)
             this._nativeObj._text = txt;
