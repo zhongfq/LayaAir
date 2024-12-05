@@ -24,6 +24,7 @@ export class HierarchyParser {
         let prefabNodeDict: Map<Node, Record<string, Node>>;
         let skinBaseUrl: string;
         let overrideData: Array<Array<any>>;
+        let shouldCreateComponent: (nodeData: any, compData: any) => boolean;
 
         if (options) {
             inPrefab = options.inPrefab;
@@ -31,6 +32,7 @@ export class HierarchyParser {
                 prefabNodeDict = options.prefabNodeDict;
             skinBaseUrl = options.skinBaseUrl;
             overrideData = options.overrideData;
+            shouldCreateComponent = options.shouldCreateComponent;
         }
 
         function createChildren(data: any, prefab: Node) {
@@ -104,7 +106,7 @@ export class HierarchyParser {
 
                         overrideData2.push(nodeData._$child);
 
-                        node = res.create({ inPrefab: true, prefabNodeDict: prefabNodeDict, overrideData: overrideData2 }, errors);
+                        node = res.create({ inPrefab: true, shouldCreateComponent: shouldCreateComponent, prefabNodeDict: prefabNodeDict, overrideData: overrideData2 }, errors);
                     }
                 }
                 else if (pstr = nodeData._$type) {
@@ -284,6 +286,9 @@ export class HierarchyParser {
             for (let compData of components) {
                 let comp: Component;
                 let typeOrId = compData._$override;
+                if (shouldCreateComponent && !shouldCreateComponent(dataList[i], compData)) {
+                    continue;
+                }
                 if (compData._$override) {
                     let cls = ClassUtils.getClass(typeOrId);
                     if (cls)
