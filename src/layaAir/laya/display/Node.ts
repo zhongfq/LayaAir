@@ -8,6 +8,7 @@ import { Timer } from "../utils/Timer"
 import { ILaya } from "../../ILaya";
 import { ComponentDriver } from "../components/ComponentDriver";
 import { OutOfRangeError } from "../utils/Error"
+import { PrefabFragment, PrefabImpl } from "../resource/PrefabImpl"
 
 const ARRAY_EMPTY: any[] = [];
 
@@ -29,6 +30,11 @@ export class Node extends EventDispatcher {
     static EVENT_SET_IN_ACTIVESCENE: string = "InActiveScene";
     private _bits: number = 0;
     private _hideFlags: number = 0;
+
+    /**@internal */
+    _prefabId: string = null;
+    /**@internal */
+    _prefab: PrefabImpl = null;
 
     /**
      * @internal
@@ -297,6 +303,8 @@ export class Node extends EventDispatcher {
         this.onPreDestroy();
 
         this._destroyed = true;
+        this._prefab?._removeReference();
+        this._prefab = null;
         this.destroyAllComponent();
         this._parent && this._parent.removeChild(this);
 
@@ -1298,6 +1306,10 @@ export class Node extends EventDispatcher {
      * @zh 反序列化后调用。
      */
     onAfterDeserialize() { }
+
+    get prefab(): PrefabFragment | undefined { 
+        return this._prefab?.getFragment(this._prefabId)
+    }
 }
 
 const _bubbleChainPool: Array<Array<Node>> = [];
