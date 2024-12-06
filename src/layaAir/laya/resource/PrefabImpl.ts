@@ -2,6 +2,15 @@ import { Node } from "../display/Node";
 import { ILoadURL } from "../net/Loader";
 import { Prefab } from "./HierarchyResource";
 
+interface PrefabNodeData {
+    name?: string;
+    _$id: string;
+    _$type: string;
+    _$prefab?: string;
+    _$child?: PrefabNodeData[];
+}
+
+
 /**
  * @en Hierarchy parser API.
  * @zh 层次结构分析器 API。
@@ -49,6 +58,9 @@ export class PrefabImpl extends Prefab {
      */
     api: IHierarchyParserAPI;
 
+    /** @internal */
+    fragments: { [key: string]: PrefabFragment } = {};
+
     /**
      * @en Create an instance of the PrefabImpl class.
      * @param api The hierarchy parser API.
@@ -77,6 +89,8 @@ export class PrefabImpl extends Prefab {
      * @returns 预制体实例。
      */
     create(options?: Record<string, any>, errors?: any[]): Node {
+        options = options || {};
+        options.prefab = this;
         let ret = this.api.parse(this.data, options, errors);
         if (Array.isArray(ret)) {
             if (ret.length == 1) {
@@ -89,4 +103,35 @@ export class PrefabImpl extends Prefab {
             return ret;
         }
     }
+
+    /** @internal */
+    getFragment(name: string): PrefabFragment | undefined {
+        let fragment = this.fragments[name];
+        if (!fragment) {
+            const data = this._findFragment(name, this.data);
+            if (data) {
+                fragment = new PrefabFragment(this.api, data, this.version);
+                this.fragments[name] = fragment;
+            }
+        }
+        return fragment;
+    }
+
+    private _findFragment(name: string, data: PrefabNodeData): PrefabNodeData | undefined {
+        if (data._$id == name) {
+            return data;
+        } else if (data._$child) {
+            for (const child of data._$child) {
+                const ret = this._findFragment(name, child);
+                if (ret) {
+                    return ret;
+                }
+            }
+        }
+        return undefined;
+    }
 }
+
+export class PrefabFragment extends PrefabImpl {}
+
+
