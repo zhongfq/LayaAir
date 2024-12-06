@@ -25,6 +25,7 @@ export class HierarchyParser {
         let skinBaseUrl: string;
         let overrideData: Array<Array<any>>;
         let shouldCreateComponent: (nodeData: any, compData: any) => boolean;
+        let prefab: any;
 
         if (options) {
             inPrefab = options.inPrefab;
@@ -33,6 +34,7 @@ export class HierarchyParser {
             skinBaseUrl = options.skinBaseUrl;
             overrideData = options.overrideData;
             shouldCreateComponent = options.shouldCreateComponent;
+            prefab = options.prefab;
         }
 
         function createChildren(data: any, prefab: Node) {
@@ -330,6 +332,11 @@ export class HierarchyParser {
                     node._skinBaseUrl = skinBaseUrl;
 
                 SerializeUtil.decodeObj(nodeData, node, decodeOptions);
+
+                node._prefab?._removeReference();
+                node._prefab = prefab;
+                node._prefabId = nodeData._$id;
+                node._prefab?._addReference()
 
                 if (runtime && nodeData._$var && node.name) {
                     try {
