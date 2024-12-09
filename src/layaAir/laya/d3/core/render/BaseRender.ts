@@ -668,6 +668,7 @@ export class BaseRender extends Component {
         scene._removeRenderObject(this);
         this._setUnBelongScene();
         this.volume = null;
+        super._onDisable();
     }
 
     /**
