@@ -184,6 +184,11 @@ export class TrailRenderer extends BaseRender {
         this._trailFilter._update(context);
     }
 
+    onDisable(): void {
+        super.onDisable();
+        this.clear();
+    }
+
     /**
      * @en Clear the trail.
      * @zh 清除拖尾
