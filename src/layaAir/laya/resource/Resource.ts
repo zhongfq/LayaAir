@@ -1,16 +1,62 @@
 import { LayaEnv } from "../../LayaEnv";
 import { ILaya } from "../../ILaya";
 import { EventDispatcher } from "../events/EventDispatcher";
+import { Pool } from "../utils/Pool";
 
 var _idCounter: number = 0;
 var _disposingCounter: number = 0;
 var _clearRetry: number = 0;
+
+class ListNode<T> {
+    next: ListNode<T>;
+    value: T;
+}
+
+class LinkedList<T> {
+    head: ListNode<T> | null = null;
+    tail: ListNode<T> | null = null;
+
+    push(value: T): void {
+        Pool.getItem
+        let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
+        node.value = value;
+        node.next = null;
+        if (this.head == null) {
+            this.head = node;
+        } else {
+            this.tail!.next = node;
+        }
+        this.tail = node;
+    }
+
+    shift(): T | null {
+        if (this.head == null) {
+            return null;
+        }
+        let node = this.head;
+        this.head = this.head.next;
+        if (this.head == null) {
+            this.tail = null;
+        }
+        Pool.recoverByClass(node);
+        return node.value;
+    }
+
+    peek(): T | null {
+        if (this.head == null) {
+            return null;
+        }
+        return this.head.value;
+    }
+}
 
 /**
  * @en The `Resource` class used for resource access.
  * @zh `Resource` 类用于资源存取。
  */
 export class Resource extends EventDispatcher {
+    static readonly unusedResources: LinkedList<Resource> = new LinkedList();
+    
     /**@ignore */
     static _idResourcesMap: any = {};
     /** 以字节为单位。*/
@@ -61,6 +107,10 @@ export class Resource extends EventDispatcher {
         Resource._gpuMemory += gpuSize;
     }
 
+    static get allResources(): Readonly<Map<number, Resource>> {
+        return Resource._idResourcesMap;
+    }
+
     /**
      * @en Destroy unused resources, this function will ignore resources with lock=true.
      * @zh 销毁当前没有被使用的资源,该函数会忽略lock=true的资源。
@@ -98,6 +148,8 @@ export class Resource extends EventDispatcher {
             ILaya.timer.frameLoop(1, Resource, Resource._destroyUnusedResources);
         }
     }
+
+    private _unusedTime: number = 0;
 
     private _cpuMemory: number = 0;
     private _gpuMemory: number = 0;
@@ -205,6 +257,10 @@ export class Resource extends EventDispatcher {
         return this._referenceCount;
     }
 
+    get unusedTime(): number {
+        return this._unusedTime;
+    }
+
     /**
      * @en Creates an instance of Resource.
      * @param managed If set to true, the resource will be automatically released when the reference count is 0. Default is true.
@@ -217,8 +273,10 @@ export class Resource extends EventDispatcher {
         this._id = ++_idCounter;
         this._destroyed = false;
         this._referenceCount = 0;
-        if (managed == null || managed)
+        this._unusedTime = Date.now();
+        if (managed == null || managed) {
             Resource._idResourcesMap[this._id] = this;
+        }
         this.lock = false;
         this.destroyedImmediately = true;
         this._deps = [];
@@ -260,6 +318,10 @@ export class Resource extends EventDispatcher {
     _setCreateURL(url: string, uuid?: string): void {
         this.url = url;
         this.uuid = uuid;
+        if (this._referenceCount === 0 && url) {
+            this._unusedTime = Date.now();
+            Resource.unusedResources.push(this);
+        }
     }
 
     /**
@@ -296,6 +358,9 @@ export class Resource extends EventDispatcher {
         //如果_removeReference发生在destroy中，可能是在collect或者处理内嵌资源的释放
         if (_disposingCounter > 0 && this._referenceCount <= 0 && !this.lock && this.destroyedImmediately) {
             this.destroy();
+        } else if (this._referenceCount <= 0 && !this.lock && this.url) {
+            this._unusedTime = Date.now();
+            Resource.unusedResources.push(this);
         }
     }
 
