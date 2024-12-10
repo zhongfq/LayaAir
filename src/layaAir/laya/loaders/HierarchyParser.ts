@@ -333,10 +333,7 @@ export class HierarchyParser {
 
                 SerializeUtil.decodeObj(nodeData, node, decodeOptions);
 
-                node._prefab?._removeReference();
-                node._prefab = prefab;
-                node._prefabId = nodeData._$id;
-                node._prefab?._addReference()
+                node._setPrefab(prefab, nodeData._$id);
 
                 if (runtime && nodeData._$var && node.name) {
                     try {
