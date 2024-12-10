@@ -567,6 +567,8 @@ export class Texture extends Resource {
     protected _disposeResource(): void {
         let bit = this._bitmap;
         this._bitmap = null;
+        this._atlas?._removeReference(this._referenceCount);
+        this._atlas = null;
         if (bit)
             bit._removeReference(this._referenceCount);
 
