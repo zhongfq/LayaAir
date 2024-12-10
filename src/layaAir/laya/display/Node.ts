@@ -9,6 +9,8 @@ import { ILaya } from "../../ILaya";
 import { ComponentDriver } from "../components/ComponentDriver";
 import { OutOfRangeError } from "../utils/Error"
 import { PrefabFragment, PrefabImpl } from "../resource/PrefabImpl"
+import { Laya } from "../../Laya"
+import { Resource } from "../resource/Resource"
 
 const ARRAY_EMPTY: any[] = [];
 
@@ -303,8 +305,7 @@ export class Node extends EventDispatcher {
         this.onPreDestroy();
 
         this._destroyed = true;
-        this._prefab?._removeReference();
-        this._prefab = null;
+        this._setPrefab(null, null);
         this.destroyAllComponent();
         this._parent && this._parent.removeChild(this);
 
@@ -1309,6 +1310,18 @@ export class Node extends EventDispatcher {
 
     get prefab(): PrefabFragment | undefined { 
         return this._prefab?.getFragment(this._prefabId)
+    }
+
+    /** @internal */
+    _setPrefab(prefab: PrefabImpl, id: string) {
+        this._prefabId = id;
+        if (Resource.DEBUG) {
+            prefab?.nodes.add(this);
+            this._prefab?.nodes.remove(this);
+        }
+        prefab?._addReference();
+        this._prefab?._removeReference();
+        this._prefab = prefab;
     }
 }
 
