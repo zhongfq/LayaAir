@@ -12,41 +12,68 @@ class ListNode<T> {
     value: T;
 }
 
-class LinkedList<T> {
-    head: ListNode<T> | null = null;
-    tail: ListNode<T> | null = null;
+class LinkedList<T extends Resource> {
+    private _head: ListNode<T> | null = null;
+    private _tail: ListNode<T> | null = null;
+
+    /** @internal */
+    _destroying: boolean = false;
+
+    private _length: number = 0;
+
+    get length(): number {
+        return this._length;
+    }
 
     push(value: T): void {
         Pool.getItem
         let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
         node.value = value;
         node.next = null;
-        if (this.head == null) {
-            this.head = node;
+        if (this._head == null) {
+            this._head = node;
         } else {
-            this.tail!.next = node;
+            this._tail!.next = node;
         }
-        this.tail = node;
+        this._tail = node;
+        this._length++;
     }
 
     shift(): T | null {
-        if (this.head == null) {
+        if (this._head == null) {
             return null;
         }
-        let node = this.head;
-        this.head = this.head.next;
-        if (this.head == null) {
-            this.tail = null;
+        let node = this._head;
+        this._head = this._head.next;
+        if (this._head == null) {
+            this._tail = null;
         }
+        this._length--;
         Pool.recoverByClass(node);
         return node.value;
     }
 
+    unshift(value: T): void {
+        if (this._head?.value !== value) {
+            let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
+            node.value = value;
+            node.next = this._head;
+            this._head = node;
+            this._length++;
+        }
+    }
+
     peek(): T | null {
-        if (this.head == null) {
+        if (this._head == null) {
             return null;
         }
-        return this.head.value;
+        return this._head.value;
+    }
+
+    destroy(res: T): void {
+        this._destroying = true;
+        res.destroy();
+        this._destroying = false;
     }
 }
 
@@ -149,7 +176,7 @@ export class Resource extends EventDispatcher {
         }
     }
 
-    private _unusedTime: number = 0;
+    unusedTime: number = 0;
 
     private _cpuMemory: number = 0;
     private _gpuMemory: number = 0;
@@ -257,10 +284,6 @@ export class Resource extends EventDispatcher {
         return this._referenceCount;
     }
 
-    get unusedTime(): number {
-        return this._unusedTime;
-    }
-
     /**
      * @en Creates an instance of Resource.
      * @param managed If set to true, the resource will be automatically released when the reference count is 0. Default is true.
@@ -273,7 +296,7 @@ export class Resource extends EventDispatcher {
         this._id = ++_idCounter;
         this._destroyed = false;
         this._referenceCount = 0;
-        this._unusedTime = Date.now();
+        this.unusedTime = Date.now();
         if (managed == null || managed) {
             Resource._idResourcesMap[this._id] = this;
         }
@@ -319,7 +342,7 @@ export class Resource extends EventDispatcher {
         this.url = url;
         this.uuid = uuid;
         if (this._referenceCount === 0 && url) {
-            this._unusedTime = Date.now();
+            this.unusedTime = Date.now();
             Resource.unusedResources.push(this);
         }
     }
@@ -347,6 +370,10 @@ export class Resource extends EventDispatcher {
         this._referenceCount += count;
     }
 
+    addReference(): void {
+        this._addReference(1);
+    }
+
     /**
      * @en Decrements the reference count of the resource by the specified amount. If the reference count reaches zero and certain conditions are met, the resource may be destroyed.
      * @param count The amount by which to decrement the reference count, default is 1.
@@ -357,11 +384,20 @@ export class Resource extends EventDispatcher {
         this._referenceCount -= count;
         //如果_removeReference发生在destroy中，可能是在collect或者处理内嵌资源的释放
         if (_disposingCounter > 0 && this._referenceCount <= 0 && !this.lock && this.destroyedImmediately) {
-            this.destroy();
-        } else if (this._referenceCount <= 0 && !this.lock && this.url) {
-            this._unusedTime = Date.now();
+            if (Resource.unusedResources._destroying) {
+                this.unusedTime = -1; // 立马销毁
+                Resource.unusedResources.unshift(this)
+            } else {
+                this.destroy();
+            }
+        } else if (this._referenceCount <= 0 && !this.lock) {
+            this.unusedTime = Date.now();
             Resource.unusedResources.push(this);
         }
+    }
+
+    removeReference(): void {
+        this._removeReference(1);
     }
 
     /**

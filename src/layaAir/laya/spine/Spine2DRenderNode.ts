@@ -238,7 +238,7 @@ export class Spine2DRenderNode extends BaseRenderNode2D implements ISpineSkeleto
                 this.templet = template;
             } else {
                 ILaya.loader.load(value, Loader.SPINE).then((templet: SpineTemplet) => {
-                    if (!this._source || templet && !templet.isCreateFromURL(this._source))
+                    if (!this._source || this.destroyed || templet && !templet.isCreateFromURL(this._source))
                         return;
                     if(this.destroyed)
                         return;

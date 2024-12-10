@@ -261,6 +261,7 @@ export class RTBaseRenderNode implements IBaseRenderNode {
     }
 
     destroy(): void {
+        this._shaderData?.destroy();
         this._nativeObj.destroy();
     }
 

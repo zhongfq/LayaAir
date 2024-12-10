@@ -249,6 +249,7 @@ export class Text extends Sprite {
      * @param destroyChild 是否销毁子节点。默认为 true。
      */
     destroy(destroyChild: boolean = true): void {
+        this._setBitmapFont(null);
         recoverLines(this._lines);
         HtmlElement.returnToPool(this._elements);
 
@@ -362,6 +363,12 @@ export class Text extends Sprite {
         this.text = text;
     }
 
+    protected _setBitmapFont(font: BitmapFont): void {
+        font?._addReference();
+        this._bitmapFont?._removeReference();
+        this._bitmapFont = font;
+    }
+
     /**
      * @en The font name of the text, represented as a string.
      * The default value is "Arial", which can be set through Config.defaultFont.
@@ -383,7 +390,7 @@ export class Text extends Sprite {
         }
 
         this._realFont = value;
-        this._bitmapFont = Text._bitmapFonts[value];
+        this._setBitmapFont(Text._bitmapFonts[value]);
 
         if (this._bitmapFont) {
             if (this._text)
@@ -398,7 +405,7 @@ export class Text extends Sprite {
                         return;
 
                     if (fontObj instanceof BitmapFont)
-                        this._bitmapFont = fontObj;
+                        this._setBitmapFont(fontObj);
                     else
                         this._realFont = fontObj.family;
                     if (this._text)
@@ -407,7 +414,7 @@ export class Text extends Sprite {
             }
             else {
                 if (fontObj instanceof BitmapFont)
-                    this._bitmapFont = fontObj;
+                    this._setBitmapFont(fontObj)
                 else
                     this._realFont = fontObj.family;
                 if (this._text)
