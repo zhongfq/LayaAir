@@ -43,6 +43,9 @@ export class Texture extends Resource {
     private _w: number = 0;
     private _h: number = 0;
 
+    /** @internal */
+    _atlas?: Resource;
+
     /**
      * @en The offset along the X-axis.
      * @zh 沿 X 轴的偏移量。
@@ -307,6 +310,7 @@ export class Texture extends Resource {
      */
     _addReference(count: number = 1): void {
         super._addReference(count);
+        this._atlas?._addReference(count);
         this._bitmap && this._bitmap._addReference(count);
     }
 
@@ -314,6 +318,7 @@ export class Texture extends Resource {
      * @internal
      */
     _removeReference(count: number = 1): void {
+        this._atlas?._removeReference(count);
         this._bitmap && this._bitmap._removeReference(count);
         super._removeReference(count);
     }
@@ -552,6 +557,8 @@ export class Texture extends Resource {
     protected _disposeResource(): void {
         let bit = this._bitmap;
         this._bitmap = null;
+        this._atlas?._removeReference(this._referenceCount);
+        this._atlas = null;
         if (bit)
             bit._removeReference(this._referenceCount);
     }

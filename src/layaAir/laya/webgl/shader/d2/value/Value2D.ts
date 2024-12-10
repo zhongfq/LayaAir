@@ -258,6 +258,7 @@ export class Value2D {
     clear(): void {
         if(this.shaderData){
             this.shaderData.clearDefine();
+            this.textureHost = null;
             //this.shaderData.destroy();
         }
     }

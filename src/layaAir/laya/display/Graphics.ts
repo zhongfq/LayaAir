@@ -114,6 +114,7 @@ export class Graphics {
         if (this._graphicBounds) this._graphicBounds.destroy();
         this._graphicBounds = null;
         this._vectorgraphArray = null;
+        this.material = null;
         if (this._sp) {
             this._sp._renderType = 0;
             this._sp = null;

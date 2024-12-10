@@ -258,6 +258,7 @@ export class WebBaseRenderNode implements IBaseRenderNode {
         this.renderelements.forEach(element => {
             element.destroy();
         });
+        this.shaderData?.destroy();
         this.baseGeometryBounds = null;
         this.transform = null;
         this.lightmapScaleOffset = null;

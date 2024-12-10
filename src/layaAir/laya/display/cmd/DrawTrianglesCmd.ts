@@ -100,6 +100,7 @@ export class DrawTrianglesCmd {
         matrix: Matrix | null, alpha: number, color: string | number | number[], blendMode: string | null): DrawTrianglesCmd {
         var cmd: DrawTrianglesCmd = Pool.getItemByClass("DrawTrianglesCmd", DrawTrianglesCmd);
         cmd.texture = texture;
+        texture._addReference();
         cmd.x = x;
         cmd.y = y;
         cmd.vertices = vertices;
@@ -117,6 +118,7 @@ export class DrawTrianglesCmd {
      * @zh 回收到对象池
      */
     recover(): void {
+        this.texture?._removeReference();
         this.texture = null;
         this.vertices = null;
         this.uvs = null;
