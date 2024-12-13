@@ -313,6 +313,8 @@ export class Loader extends EventDispatcher {
      */
     static preLoadedMap: { [url: string]: any } = {};
 
+    retry?: (url:string, handler:(retry:boolean) => void) => void;
+
     private _loadings: Map<string, LoadTask>;
     private _queue: Array<DownloadItem>;
     private _downloadings: Set<DownloadItem>;
@@ -780,6 +782,16 @@ export class Loader extends EventDispatcher {
             if (!item.silent)
                 console.debug(`Retry to load ${item.url} (${item.retryCnt})`);
             ILaya.systemTimer.once(this.retryDelay, this, this.queueToDownload, [item], false);
+        } else if (this.retry && item.retryCnt != -1) {
+            this.retry(item.originalUrl, (retry) => {
+                if (retry) {
+                    item.retryCnt = 0;
+                    this.queueToDownload(item);
+                } else {
+                    item.retryCnt = -1;
+                    this.completeItem(item, null, error);
+                }
+            });
         }
         else {
             !item.silent && Loader.warnFailed(item.url, error);
