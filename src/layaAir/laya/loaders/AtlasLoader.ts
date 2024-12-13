@@ -1,4 +1,6 @@
+import { AtlasInfoManager } from "../net/AtlasInfoManager";
 import { IResourceLoader, ILoadTask, Loader } from "../net/Loader";
+import { URL } from "../net/URL";
 import { AtlasResource } from "../resource/AtlasResource";
 import { Texture } from "../resource/Texture";
 import { Utils } from "../utils/Utils";
@@ -58,6 +60,10 @@ class AtlasLoader implements IResourceLoader {
                     task.loader.cacheRes(url, tt);
                     tt.url = url;
                     subTextures.push(tt);
+                }
+
+                if (subTextures.length && !AtlasInfoManager.getFileLoadPath(URL.formatURL(subTextures[0].url))) {
+                    AtlasInfoManager.addAtlas(task.url, directory, Object.keys(frames)) 
                 }
 
                 return new AtlasResource(directory, pics, subTextures);
