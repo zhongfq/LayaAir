@@ -140,6 +140,14 @@ export class PrefabImpl extends Prefab {
             return ret;
         }
     }
+    
+    protected _disposeResource(): void {
+        super._disposeResource();
+        for (let k in this.fragments) {
+            this.fragments[k]._removeReference();
+        }
+        this.fragments = null;
+    }
 
     /** @internal */
     getFragment(name: string): PrefabFragment | undefined {
@@ -148,6 +156,7 @@ export class PrefabImpl extends Prefab {
             const data = this._findFragment(name, this.data);
             if (data) {
                 fragment = new PrefabFragment(this.api, data, this.version);
+                fragment._addReference();
                 this.fragments[name] = fragment;
             }
         }
