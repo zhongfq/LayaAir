@@ -40,7 +40,6 @@ export class AtlasResource extends Resource {
         // this.lock = true;
 
         frames.forEach((tex) => tex._atlas = this);
-        Resource.atlasResources.push(this);
     }
 
     // get referenceCount(): number {

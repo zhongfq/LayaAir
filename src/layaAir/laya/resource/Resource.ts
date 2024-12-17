@@ -58,6 +58,9 @@ class LinkedList<T extends Resource> {
             let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
             node.value = value;
             node.next = this._head;
+            if (this._tail == null) {
+                this._tail = node;
+            }
             this._head = node;
             this._length++;
         }
@@ -83,7 +86,6 @@ class LinkedList<T extends Resource> {
  */
 export class Resource extends EventDispatcher {
     static readonly unusedResources: LinkedList<Resource> = new LinkedList();
-    static readonly atlasResources: LinkedList<Resource> = new LinkedList();
     
     /**@ignore */
     static _idResourcesMap: any = {};
