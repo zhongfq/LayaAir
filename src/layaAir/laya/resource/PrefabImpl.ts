@@ -122,6 +122,10 @@ export class PrefabImpl extends Prefab {
      * @returns 预制体实例。
      */
     create(options?: Record<string, any>, errors?: any[]): Node {
+        if (this.destroyed) {
+            throw new Error(`Prefab has been destroyed: ${this.url}`);
+        }
+
         options = options || {};
         options.prefab = this;
         let ret = this.api.parse(this.data, options, errors);
