@@ -2,6 +2,7 @@ import { AnimatorControllerParse, AniParmType, TypeAnimatorConditions, TypeAnima
 import { AnimatorStateCondition, AnimatorStateBoolCondition, AnimatorStateNumberCondition, AnimatorStateTriggerCondition } from "../../../components/AnimatorStateCondition";
 import { Resource } from "../../../resource/Resource";
 import { ClassUtils } from "../../../utils/ClassUtils";
+import { AnimationClip } from "../../animation/AnimationClip";
 import { Animator } from "./Animator";
 import { AnimatorControllerLayer } from "./AnimatorControllerLayer";
 import { AnimatorState } from "./AnimatorState";
