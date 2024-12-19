@@ -2,7 +2,6 @@ import { TypeAnimatorLayer, TypeAnimatorState } from "../../components/AnimatorC
 import { IResourceLoader, ILoadTask, Loader } from "../../net/Loader";
 import { AnimatorController } from "../component/Animator/AnimatorController";
 import { URL } from "../../net/URL";
-
 /**
  * @ignore
  * @en Used for loading and handling 3D animation controllers.
