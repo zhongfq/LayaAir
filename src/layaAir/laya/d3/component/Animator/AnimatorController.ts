@@ -2,6 +2,7 @@ import { AnimatorControllerParse, AniParmType, TypeAnimatorConditions, TypeAnima
 import { AnimatorStateCondition, AnimatorStateBoolCondition, AnimatorStateNumberCondition, AnimatorStateTriggerCondition } from "../../../components/AnimatorStateCondition";
 import { Resource } from "../../../resource/Resource";
 import { ClassUtils } from "../../../utils/ClassUtils";
+import { AnimationClip } from "../../animation/AnimationClip";
 import { Animator } from "./Animator";
 import { AnimatorControllerLayer } from "./AnimatorControllerLayer";
 import { AnimatorState } from "./AnimatorState";
@@ -13,6 +14,9 @@ import { AvatarMask } from "./AvatarMask";
  * @zh 管理动画状态和转换的动画控制器资源。
  */
 export class AnimatorController extends Resource {
+    /** @internal */
+    _clips: AnimationClip[] = [];
+
     /**
      * @en The parsed data of the animator controller.
      * @zh 解析后的动画控制器数据。
@@ -34,6 +38,13 @@ export class AnimatorController extends Resource {
         let obj = AnimatorControllerParse.parse(data);
         this.data = obj.ret;
         this.clipsID = obj.clipsID;
+    }
+
+    protected _disposeResource(): void {
+        this._clips.forEach((clip) => {
+            clip._removeReference();
+        })
+        this._clips = null;
     }
 
     private getLayers() {

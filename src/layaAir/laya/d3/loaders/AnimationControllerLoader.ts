@@ -2,6 +2,7 @@ import { TypeAnimatorLayer, TypeAnimatorState } from "../../components/AnimatorC
 import { IResourceLoader, ILoadTask, Loader } from "../../net/Loader";
 import { AnimatorController } from "../component/Animator/AnimatorController";
 import { URL } from "../../net/URL";
+import { AnimationClip } from "../animation/AnimationClip";
 /**
  * @ignore
  * @en Used for loading and handling 3D animation controllers.
@@ -28,7 +29,7 @@ class AnimationControllerLoader implements IResourceLoader {
                         this.loadAvatarMask(layers[i], promises, task);
                     }
                     let states = layers[i].states;
-                    this.loadStates(states, promises, task);
+                    this.loadStates(states, promises, task, ret);
 
                 }
                 return Promise.all(promises).then(() => ret);
@@ -73,7 +74,7 @@ class AnimationControllerLoader implements IResourceLoader {
      * @param promises 异步加载的 Promise 列表。
      * @param task 加载任务。
      */
-    loadStates(states: TypeAnimatorState[], promises: Array<any>, task: ILoadTask) {
+    loadStates(states: TypeAnimatorState[], promises: Array<any>, task: ILoadTask, animatorController: AnimatorController) {
         let basePath = URL.getPath(task.url);
         for (let j = states.length - 1; j >= 0; j--) {
             if (states[j].clip && states[j].clip._$uuid) {
@@ -82,6 +83,8 @@ class AnimationControllerLoader implements IResourceLoader {
                     url = URL.join(basePath, url);
                 promises.push(task.loader.load(url).then(res => {
                     states[j].clip = res;
+                    res._addReference();
+                    animatorController._clips.push(res);
                 }));
 
                 // promises.push(task.loader.load("res://" + states[j].clip._$uuid).then(res => {
@@ -90,7 +93,7 @@ class AnimationControllerLoader implements IResourceLoader {
             }
 
             if (states[j].states) {
-                this.loadStates(states[j].states, promises, task);
+                this.loadStates(states[j].states, promises, task, animatorController);
             }
         }
     }
