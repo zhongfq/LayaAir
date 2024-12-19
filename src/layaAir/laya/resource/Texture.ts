@@ -598,7 +598,8 @@ export class Texture extends Resource {
             this._clipCache = new Map();
 
         let tex = this._clipCache.get(key);
-        if (tex)
+        
+        if (tex && !tex.destroyed)
             return tex;
         tex = Texture.createFromTexture(this, x, y, width, height);
         if (tex)

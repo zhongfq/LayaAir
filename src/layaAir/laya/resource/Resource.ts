@@ -8,69 +8,118 @@ var _disposingCounter: number = 0;
 var _clearRetry: number = 0;
 
 class ListNode<T> {
+    prve: ListNode<T>;
     next: ListNode<T>;
     value: T;
 }
 
-class LinkedList<T extends Resource> {
-    private _head: ListNode<T> | null = null;
-    private _tail: ListNode<T> | null = null;
+export class UnusedResource<T extends Resource> {
+    private _head: ListNode<T>;
+    private _tail: ListNode<T>;
+    private _map: Map<T, ListNode<T>> = new Map();
 
     /** @internal */
     _destroying: boolean = false;
 
     private _length: number = 0;
 
+    constructor() {
+        this._head = new ListNode<T>();
+        this._tail = this._head;
+        this._head.next = this._tail;
+        this._tail.prve = this._head;
+    }
+
     get length(): number {
         return this._length;
     }
 
+    remove(value: T) {
+        const node = this._map.get(value);
+        if (node) {
+            node.prve.next = node.next;
+            node.next.prve = node.prve;
+
+            if (this._tail === node) {
+                this._tail = node.prve;
+            }
+
+            this._length--;
+            this._map.delete(value);
+
+            node.prve = null;
+            node.next = null;
+            node.value = null;
+            Pool.recoverByClass(node);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    reset(value: T): void {
+        if (this.remove(value)) {
+            if (value.referenceCount <= 0) {
+                this.push(value);
+            }
+        }
+    }
+
     push(value: T): void {
-        Pool.getItem
+        if (this._map.has(value)) {
+            return;
+        }
         let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
         node.value = value;
-        node.next = null;
-        if (this._head == null) {
-            this._head = node;
-        } else {
-            this._tail!.next = node;
-        }
-        this._tail = node;
+        node.value._unusedTime = Date.now();
         this._length++;
+        this._map.set(value, node);
+
+        const prev = this._tail;
+        const next = this._tail.next;
+        this._tail = node;
+        prev.next = node;
+        node.prve = prev;
+        node.next = next;
+        next.prve = node;
     }
 
     shift(): T | null {
-        if (this._head == null) {
+        if (this._head.next === this._head) {
             return null;
         }
-        let node = this._head;
-        this._head = this._head.next;
-        if (this._head == null) {
-            this._tail = null;
-        }
-        this._length--;
-        Pool.recoverByClass(node);
-        return node.value;
+
+        const value = this._head.next.value;
+        this.remove(value);
+        return value;
     }
 
     unshift(value: T): void {
-        if (this._head?.value !== value) {
-            let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
-            node.value = value;
-            node.next = this._head;
-            if (this._tail == null) {
-                this._tail = node;
-            }
-            this._head = node;
-            this._length++;
+        this.remove(value);
+
+        const prve = this._head;
+        const next = this._head.next;
+
+        let node: ListNode<T> = Pool.createByClass<ListNode<T>>(ListNode);
+        node.value = value;
+        node.value._unusedTime = -1; // 立马销毁
+
+        prve.next = node;
+        node.prve = prve;
+        node.next = next;
+        next.prve = node;
+
+        this._length++;
+        this._map.set(value, node);
+
+        if (this._tail === this._head) {
+            this._tail = node;
         }
     }
 
     peek(): T | null {
-        if (this._head == null) {
-            return null;
-        }
-        return this._head.value;
+        return this._head.next.value;
     }
 
     destroy(res: T): void {
@@ -85,7 +134,7 @@ class LinkedList<T extends Resource> {
  * @zh `Resource` 类用于资源存取。
  */
 export class Resource extends EventDispatcher {
-    static readonly unusedResources: LinkedList<Resource> = new LinkedList();
+    static readonly unusedResources: UnusedResource<Resource> = new UnusedResource();
     
     /**@ignore */
     static _idResourcesMap: any = {};
@@ -179,7 +228,8 @@ export class Resource extends EventDispatcher {
         }
     }
 
-    unusedTime: number = 0;
+    /** @internal */
+    _unusedTime: number = 0;
 
     private _cpuMemory: number = 0;
     private _gpuMemory: number = 0;
@@ -217,6 +267,10 @@ export class Resource extends EventDispatcher {
      * @zh 是否在引用计数为0的时候立马删除他 
      */
     destroyedImmediately: boolean;
+
+    get unusedTime(): number {
+        return this._unusedTime
+    }
 
     /**
      * @en Unique identifier ID, usually used for identification.
@@ -299,7 +353,6 @@ export class Resource extends EventDispatcher {
         this._id = ++_idCounter;
         this._destroyed = false;
         this._referenceCount = 0;
-        this.unusedTime = Date.now();
         if (managed == null || managed) {
             Resource._idResourcesMap[this._id] = this;
         }
@@ -345,7 +398,6 @@ export class Resource extends EventDispatcher {
         this.url = url;
         this.uuid = uuid;
         if (this._referenceCount === 0 && url) {
-            this.unusedTime = Date.now();
             Resource.unusedResources.push(this);
         }
     }
@@ -388,13 +440,11 @@ export class Resource extends EventDispatcher {
         //如果_removeReference发生在destroy中，可能是在collect或者处理内嵌资源的释放
         if (_disposingCounter > 0 && this._referenceCount <= 0 && !this.lock && this.destroyedImmediately) {
             if (Resource.unusedResources._destroying) {
-                this.unusedTime = -1; // 立马销毁
                 Resource.unusedResources.unshift(this)
             } else {
                 this.destroy();
             }
         } else if (this._referenceCount <= 0 && !this.lock) {
-            this.unusedTime = Date.now();
             Resource.unusedResources.push(this);
         }
     }

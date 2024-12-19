@@ -921,8 +921,12 @@ export class Loader extends EventDispatcher {
 
         if ((ret instanceof Resource) && ret.destroyed)
             return undefined;
-        else
+        else {
+            if (ret) {
+                Resource.unusedResources.reset(ret);
+            }
             return ret;
+        }
     }
 
     /**
