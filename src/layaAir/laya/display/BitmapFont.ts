@@ -121,6 +121,7 @@ export class BitmapFont extends Resource {
             let height = ct.getAttrInt("height");
 
             let tex = Texture.create(texture, x, y, width, height, xOffset, yOffset);
+            tex.lock = true;
 
             if (advance == 0)
                 advance = width;
