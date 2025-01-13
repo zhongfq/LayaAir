@@ -556,11 +556,6 @@ export class Context {
     destroy(): void {
         --Context._contextcount;
 
-        for (let sv of this._shaderValueNeedRelease) {
-            sv.release();
-            sv._needRelease = false;
-        }
-        this._shaderValueNeedRelease.length = 0;
         this.clear();
 
         this.sprite = null;
