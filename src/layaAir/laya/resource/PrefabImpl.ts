@@ -10,31 +10,18 @@ interface PrefabNodeData {
     _$child?: PrefabNodeData[];
 }
 
-class CreatedNode {
-    [key: number]: Node;
-
-    private _indexMap: Map<Node, number> = new Map();
-    private _length: number = 0;
-
+class CreatedNode extends Array<Node> {
     add(node: Node) {
-        let index = this._indexMap.get(node);
-        if (index === undefined) {
-            const idx = this._length++;
-            this[idx] = node;
-            this._indexMap.set(node, idx);
+        const idx = this.indexOf(node);
+        if (idx === -1) {
+            this.push(node);
         }
     }
 
     remove(node: Node) {
-        let index = this._indexMap.get(node);
-        if (index !== undefined) {
-            const last = this[this._length - 1];
-            const lastIndex = this._indexMap.get(last);
-            this[index] = last;
-            this._indexMap.set(last, index);
-            this._indexMap.delete(node);
-            delete this[lastIndex];
-            this._length--;
+        const idx = this.indexOf(node);
+        if (idx !== -1) {
+            this.splice(idx, 1);
         }
     }
 }
