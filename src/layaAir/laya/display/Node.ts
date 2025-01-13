@@ -1304,14 +1304,17 @@ export class Node extends EventDispatcher {
 
     /** @internal */
     _setPrefab(prefab: PrefabImpl, id: string) {
-        this._prefabId = id;
-        if (Resource.DEBUG) {
-            prefab?.nodes.add(this);
-            this._prefab?.nodes.remove(this);
+        if (this._prefab !== prefab) {
+            this._prefabId = id;
+            if (Resource.DEBUG) {
+                prefab?.nodes.add(this);
+                this._prefab?.nodes.remove(this);
+            }
+            prefab?._addReference();
+            this._prefab?._removeReference();
+            this._prefab = prefab;
         }
-        prefab?._addReference();
-        this._prefab?._removeReference();
-        this._prefab = prefab;
+       
     }
 }
 
