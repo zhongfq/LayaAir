@@ -48,7 +48,6 @@ export class SimpleSkinnedMeshRenderer extends SkinnedMeshRenderer {
      * @internal
      */
     set simpleAnimatorTexture(value: Texture2D) {
-        this._simpleAnimatorTexture?._removeReference()
         this._simpleAnimatorTexture = value;
         this._simpleAnimatorTextureSize = value.width;
         this._baseRenderNode.shaderData.setTexture(SimpleSkinnedMeshSprite3D.SIMPLE_SIMPLEANIMATORTEXTURE, value);
@@ -197,8 +196,8 @@ export class SimpleSkinnedMeshRenderer extends SkinnedMeshRenderer {
     protected _onDestroy() {
         if (this._cacheRootBone)
             (!this._cacheRootBone._destroyed) && (this._cacheRootBone.transform.off(Event.TRANSFORM_CHANGED, this, this._onWorldMatNeedChange));
-        (this._simpleAnimatorTexture) && this._simpleAnimatorTexture._removeReference();
-        this._simpleAnimatorTexture = null;
+        // (this._simpleAnimatorTexture) && this._simpleAnimatorTexture._removeReference();
+        // this._simpleAnimatorTexture = null;
         super._onDestroy();
     }
 }
