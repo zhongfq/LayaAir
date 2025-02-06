@@ -212,7 +212,7 @@ export class Loader extends EventDispatcher {
      * @en Delay time before retrying after an error, default is to retry immediately.
      * @zh 延迟时间多久再进行错误重试，默认立即重试。
      */
-    retryDelay: number = 0;
+    retryDelay: number = 300;
     /**
      * @en Maximum number of download threads, default is 5.
      * @zh 最大下载线程，默认为 5 个。
@@ -782,16 +782,25 @@ export class Loader extends EventDispatcher {
             if (!item.silent)
                 console.debug(`Retry to load ${item.url} (${item.retryCnt})`);
             ILaya.systemTimer.once(this.retryDelay, this, this.queueToDownload, [item], false);
-        } else if (this.retry && item.retryCnt != -1) {
-            this.retry(item.originalUrl, (retry) => {
-                if (retry) {
-                    item.retryCnt = 0;
-                    this.queueToDownload(item);
-                } else {
-                    item.retryCnt = -1;
-                    this.completeItem(item, null, error);
-                }
-            });
+        } else if ((this.retry || !/^https?:/.test(item.originalUrl)) && item.retryCnt != -1) {
+            if (this._downloadings.size < this.maxLoader && this._queue.length > 0) {
+                this.download(this._queue.shift());
+            }
+            
+            if (this.retry) {
+                this.retry(item.originalUrl, (retry) => {
+                    if (retry) {
+                        item.retryCnt = 0;
+                        this.queueToDownload(item);
+                    } else {
+                        item.retryCnt = -1;
+                        this.completeItem(item, null, error);
+                    }
+                });
+            } else {
+                item.retryCnt = 0;
+                ILaya.systemTimer.once(this.retryDelay, this, this.queueToDownload, [item], false);
+            }
         }
         else {
             !item.silent && Loader.warnFailed(item.url, error);
