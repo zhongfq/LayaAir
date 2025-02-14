@@ -392,6 +392,14 @@ export class HierarchyParser {
                 return;
             }
 
+            // check UIImage
+            if (data._$classname == "UIImage" && data.preload && data.skin) {
+                const oldBasePath = basePath;
+                basePath = "";
+                addInnerUrl(data.skin, Loader.IMAGE);
+                basePath = oldBasePath;
+            }
+
             if (data._$prefab != null)
                 data._$prefab = addInnerUrl(data._$prefab, Loader.HIERARCHY);
             else if ((type = data._$type) != null) {
