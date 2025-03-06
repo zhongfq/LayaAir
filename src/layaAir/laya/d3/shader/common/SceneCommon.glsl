@@ -17,5 +17,6 @@ uniform vec4 u_FogColor;
     #endif // ENUNIFORMBLOCK
     //rotate SH IBL
 uniform float u_GIRotate;
+uniform vec4 u_CustomParams;
 
 #endif // SceneCommon_lib
