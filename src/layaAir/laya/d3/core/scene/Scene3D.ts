@@ -83,6 +83,8 @@ export class Scene3D extends Sprite {
     /** @internal */
     static FOGPARAMS: number;
     /** @internal */
+    static CUSTOMPARAMS: number;
+    /** @internal */
     static DIRECTIONLIGHTCOUNT: number;
     /** @internal */
     static LIGHTBUFFER: number;
@@ -188,6 +190,7 @@ export class Scene3D extends Sprite {
 
         Scene3D.FOGCOLOR = Shader3D.propertyNameToID("u_FogColor");
         Scene3D.FOGPARAMS = Shader3D.propertyNameToID("u_FogParams");//x start,y end,z Density
+        Scene3D.CUSTOMPARAMS = Shader3D.propertyNameToID("u_CustomParams");
         Scene3D.DIRECTIONLIGHTCOUNT = Shader3D.propertyNameToID("u_DirationLightCount");
         Scene3D.LIGHTBUFFER = Shader3D.propertyNameToID("u_LightBuffer");
         Scene3D.CLUSTERBUFFER = Shader3D.propertyNameToID("u_LightClusterBuffer");
@@ -220,6 +223,7 @@ export class Scene3D extends Sprite {
             sceneUniformMap.addShaderUniform(Scene3D.TIME, "u_Time", ShaderDataType.Float);
         }
 
+        sceneUniformMap.addShaderUniform(Scene3D.CUSTOMPARAMS, "u_CustomParams", ShaderDataType.Vector4);
         sceneUniformMap.addShaderUniform(Scene3D.DIRECTIONLIGHTCOUNT, "u_DirationLightCount", ShaderDataType.Int);
         sceneUniformMap.addShaderUniform(Scene3D.LIGHTBUFFER, "u_LightBuffer", ShaderDataType.Texture2D);
         sceneUniformMap.addShaderUniform(Scene3D.CLUSTERBUFFER, "u_LightClusterBuffer", ShaderDataType.Texture2D);
@@ -577,6 +581,14 @@ export class Scene3D extends Sprite {
         this._shaderValues.setVector(Scene3D.FOGPARAMS, value);
     }
 
+    get customParams(): Vector4 {
+        return this._shaderValues.getVector(Scene3D.CUSTOMPARAMS);
+    }
+
+    set customParams(value: Vector4) {
+        this._shaderValues.setVector(Scene3D.CUSTOMPARAMS, value);
+    }
+
     /**
      * @en The GI rotation value. The value should be between 0 and 2PI.
      * @zh 全局光照旋转值。 值应在 0 到 2PI 之间。
@@ -804,6 +816,7 @@ export class Scene3D extends Sprite {
         this.fogEnd = 1000;
         this.fogDensity = 0.01;
         this.fogColor = new Color(0.7, 0.7, 0.7);
+        this.customParams = new Vector4();
         this.fogMode = FogMode.Linear;
         this.GIRotate = 0;
 
