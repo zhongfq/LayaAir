@@ -71,6 +71,8 @@ export class Animator extends Component {
     /**@internal */
     _linkAvatarSprites: Sprite3D[] = [];
 
+    transitionEnabled: boolean = true;
+
     /**	
      * @en Culling mode，By default, when set to invisible, the animation will not play at all.
      * @zh 裁剪模式,默认为不可见时完全不播放动画。
@@ -329,7 +331,7 @@ export class Animator extends Component {
         }
 
         (!playState._finish) && animatorState._eventStateUpdate(playState._normalizedPlayTime);
-        needApplyTransition && this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
+        this.transitionEnabled && needApplyTransition && this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
         return;
     }
 
