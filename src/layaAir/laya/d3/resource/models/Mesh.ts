@@ -365,7 +365,7 @@ export class Mesh extends Resource implements IClone {
         //this._btTriangleMesh && Physics3D._bullet.btStridingMeshInterface_destroy(this._btTriangleMesh);
         this._vertexBuffer && this._vertexBuffer.destroy();
         this._indexBuffer && this._indexBuffer.destroy();
-        this._bufferState.destroy();
+        this._bufferState && this._bufferState.destroy();
         this._instanceBufferState && this._instanceBufferState.destroy();
         this._instanceWorldVertexBuffer && this._instanceWorldVertexBuffer.destroy();
         this._instanceSimpleAniVertexBuffer && this._instanceSimpleAniVertexBuffer.destroy();
