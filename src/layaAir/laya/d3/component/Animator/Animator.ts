@@ -1375,7 +1375,7 @@ export class Animator extends Component {
                     var finish: boolean = playStateInfo._finish;//提前取出finish,防止最后一帧跳过
                     if (finish && !animatorState.islooping) {
                         // dming --fix bug 即使状态播放完了，也应该不停的测试过渡条件，否则会导致状态机无法正常切换状态
-                        this._applyTransition(animatorState, i, animatorState._eventtransition(playStateInfo._normalizedPlayTime, this.animatorParams)!);
+                        this.transitionEnabled && this._applyTransition(animatorState, i, animatorState._eventtransition(playStateInfo._normalizedPlayTime, this.animatorParams)!);
                     } else {
                         this._updatePlayer(animatorState, playStateInfo, delta * speed, animatorState.islooping, i);
                     }
