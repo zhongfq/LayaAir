@@ -173,7 +173,7 @@ export class GeometryElement {
 		if (this._destroyed)
 			return;
 		this._destroyed = true;
-		this._geometryElementOBj.destroy();
+		this._geometryElementOBj && this._geometryElementOBj.destroy();
 	}
 
     /**
