@@ -58,18 +58,15 @@ vec3 computeParticleLifeVelocity(in float normalizedAge)
 }
 #endif
 
-// drag
-vec3 getStartPosition(vec3 startVelocity, float age, vec3 dragData)
+vec3 getStartPosition(vec3 startVelocity, float age)
 {
-    vec3 startPosition;
-    float lasttime = min(startVelocity.x / dragData.x, age);
-    startPosition = lasttime * (startVelocity - 0.5 * dragData * lasttime);
+    vec3 startPosition = age * startVelocity;
     return startPosition;
 }
 
 vec3 computeParticlePosition(in vec3 startVelocity, in vec3 lifeVelocity, in float age, in float normalizedAge, vec3 gravityVelocity, vec4 worldRotation, vec3 dragData)
 {
-    vec3 startPosition = getStartPosition(startVelocity, age, dragData);
+    vec3 startPosition = getStartPosition(startVelocity, age);
     vec3 lifePosition;
 #if defined(VELOCITYOVERLIFETIMECONSTANT) || defined(VELOCITYOVERLIFETIMECURVE) || defined(VELOCITYOVERLIFETIMERANDOMCONSTANT) || defined(VELOCITYOVERLIFETIMERANDOMCURVE)
     
@@ -394,7 +391,7 @@ void main()
 			worldRotation = u_WorldRotation;
 
 	    // drag
-	    vec3 dragData = a_DirectionTime.xyz * mix(u_DragConstanct.x, u_DragConstanct.y, a_Random0.x);
+	    vec3 dragData = a_DirectionTime.xyz * mix(u_DragConstanct.x, u_DragConstanct.y, a_Random0.x);//[0,0,0]
 		//miner 计算顶点位置
 	    vec3 center = computeParticlePosition(startVelocity, lifeVelocity, age, normalizedAge, gravityVelocity, worldRotation, dragData); //计算粒子位置
 
