@@ -403,6 +403,12 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
      * @zh 粒子的播放速度。
      */
     simulationSpeed: number = 1.0;
+
+    /**
+     * 时间缩放，用于加速或减速粒子系统。
+     */
+    timeScale: number = 1.0;
+
     /**
      * @en Scale mode. 0 for Hierarchy (world), 1 for Local, 2 for World.
      * @zh 缩放模式。0为Hierarchy (world)，1为Local，2为World。
@@ -1643,7 +1649,7 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
         }
         else {
             var elapsedTime: number = ((this._startUpdateLoopCount !== Stat.loopCount && !this._isPaused) && (<Scene3D>this._owner._scene)) ? ((<Scene3D>this._owner._scene)).timer._delta / 1000.0 : 0;
-            elapsedTime = Math.min(ShurikenParticleSystem._maxElapsedTime, elapsedTime * this.simulationSpeed);
+            elapsedTime = Math.min(ShurikenParticleSystem._maxElapsedTime, elapsedTime * this.simulationSpeed * this.timeScale);
             this._updateParticles(elapsedTime);
         }
     }
