@@ -118,6 +118,8 @@ export class Shader3D {
     /**是否开启调试模式。 */
     static debugMode: boolean = false;
 
+    static customDebugMode: boolean = false;
+
     static init() {
         Shader3D._configDefineValues = LayaGL.unitRenderModuleDataFactory.createDefineDatas();
         Shader3D.SHADERDEFINE_BLITSCREEN_INVERTY = Shader3D.getDefineByName("BLITSCREEN_INVERTY");
