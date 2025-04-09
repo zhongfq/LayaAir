@@ -1310,6 +1310,10 @@ export class Loader extends EventDispatcher {
         }
     }
 
+    loadHotfix(url: string, onProgress?: ProgressCallback): Promise<any> {
+        return this._loadFileConfig(url, "", null, onProgress);
+    }
+
     private _loadMiniPackage(mini: any, packName: string, progress?: ProgressCallback): Promise<any> {
         if (mini.subPkgNameSeperator)
             packName = packName.replace(/\//g, mini.subPkgNameSeperator);
@@ -1337,7 +1341,11 @@ export class Loader extends EventDispatcher {
         if (path.length > 0)
             path += "/";
 
-        return this.fetch(path + "fileconfig.json", "json", onProgress).then(fileConfig => {
+        return this._loadFileConfig(path + "fileconfig.json", path, mini, onProgress);
+    }
+
+    private _loadFileConfig(url: string, path: string, mini:any, onProgress?: ProgressCallback): Promise<any> {
+        return this.fetch(url, "json", onProgress).then(fileConfig => {
             let files: Array<string> = [];
             let col = fileConfig.files;
             for (let k in col) {
@@ -1423,6 +1431,7 @@ export class Loader extends EventDispatcher {
         });
     }
 }
+
 
 class LoadTask implements ILoadTask {
     /**
