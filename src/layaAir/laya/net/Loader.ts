@@ -1313,7 +1313,11 @@ export class Loader extends EventDispatcher {
         }
     }
 
-    private _loadMiniPackage(mini: any, packName: string, progress?: ProgressCallback): Promise<boolean> {
+    loadHotfix(url: string, onProgress?: ProgressCallback): Promise<boolean> {
+        return this._loadFileConfig(url, "", null, onProgress);
+    }
+
+    private _loadMiniPackage(mini: any, packName: string, progress?: ProgressCallback): Promise<any> {
         if (mini.subPkgNameSeperator)
             packName = packName.replace(/\//g, mini.subPkgNameSeperator);
         if (packName.length === 0)
@@ -1342,7 +1346,11 @@ export class Loader extends EventDispatcher {
         if (path.length > 0)
             path += "/";
 
-        return this.fetch(path + "fileconfig.json", "json", onProgress).then(fileConfig => {
+        return this._loadFileConfig(path + "fileconfig.json", path, mini, onProgress);
+    }
+
+    private _loadFileConfig(url: string, path: string, mini:any, onProgress?: ProgressCallback): Promise<boolean> {
+        return this.fetch(url, "json", onProgress).then(fileConfig => {
             if (!fileConfig)
                 return false;
 
@@ -1431,6 +1439,7 @@ export class Loader extends EventDispatcher {
         });
     }
 }
+
 
 class LoadTask implements ILoadTask {
     /**
