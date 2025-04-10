@@ -188,6 +188,10 @@ export class ShurikenParticleRenderer extends BaseRender {
 
         Stat.particleRenderNode++;
         (this._particleSystem.playOnAwake && LayaEnv.isPlaying) && (this._particleSystem.play());
+
+        // 关闭粒子阴影
+        this.receiveShadow = false;
+        this.castShadow = false;
     }
 
     /**
