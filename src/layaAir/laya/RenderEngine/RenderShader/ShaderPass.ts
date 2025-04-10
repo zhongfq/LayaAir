@@ -89,11 +89,13 @@ export class ShaderPass extends ShaderCompileDefineBase {
         if (Shader3D.debugMode)
             ShaderVariantCollection.active.add(shaderpass, defines);
 
-        if (Shader3D.customDebugMode) {
+        if (Shader3D.compileVerbose) {
             const shader = shaderpass._owner._owner;
             const name = shader._name;
-            console.log("ShaderPass createShaderInstance", name, defines.join(","));
+            console.info("compile shader:", name, defines.join(","));
         }
+
+        Shader3D.compiledCount++;
 
         shader = LayaGL.renderDeviceFactory.createShaderInstance(shaderProcessInfo, shaderpass);
 

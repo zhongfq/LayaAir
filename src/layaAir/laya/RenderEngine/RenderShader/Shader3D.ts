@@ -118,7 +118,11 @@ export class Shader3D {
     /**是否开启调试模式。 */
     static debugMode: boolean = false;
 
-    static customDebugMode: boolean = false;
+    /** 已编译的 shader 数量 */
+    static compiledCount: number = 0;
+
+    /** 是否开启编译详细日志 */
+    static compileVerbose: boolean = false;
 
     static init() {
         Shader3D._configDefineValues = LayaGL.unitRenderModuleDataFactory.createDefineDatas();
