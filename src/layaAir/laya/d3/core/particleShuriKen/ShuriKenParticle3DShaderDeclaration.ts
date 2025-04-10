@@ -3,9 +3,6 @@ import { ShaderDefine } from "../../../RenderDriver/RenderModuleData/Design/Shad
 import { Shader3D } from "../../../RenderEngine/RenderShader/Shader3D";
 import { LayaGL } from "../../../layagl/LayaGL";
 
-/**
- * @internal
- */
 export class ShuriKenParticle3DShaderDeclaration {
 
 	/**@internal */
@@ -201,6 +198,7 @@ export class ShuriKenParticle3DShaderDeclaration {
 
 	/**
 	 * init
+	 * @internal
 	 */
 	static __init__() {
 		let mulDefineMode = ShuriKenParticle3DShaderDeclaration.mulShaderDefineMode;//config
