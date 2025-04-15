@@ -26,6 +26,7 @@ import { Vector4 } from "../../../maths/Vector4";
 import { AnimatorUpdateMode } from "../../../components/AnimatorUpdateMode";
 import { AnimatorStateCondition } from "../../../components/AnimatorStateCondition";
 import { Delegate } from "../../../utils/Delegate";
+import { Laya } from "../../../../Laya";
 
 export type AnimatorParams = { [key: number]: number | boolean };
 
@@ -74,7 +75,12 @@ export class Animator extends Component {
     /**@internal */
     _linkAvatarSprites: Sprite3D[] = [];
 
+    /** 是否启用过渡 */
     transitionEnabled: boolean = true;
+    /** 过渡检测间隔 */
+    transitionInterval: number = 0;
+
+    private _nextTransitionCheckTime: number = 0;
 
     /**	
      * @en Culling mode，By default, when set to invisible, the animation will not play at all.
@@ -349,8 +355,23 @@ export class Animator extends Component {
         }
 
         (!playState._finish) && animatorState._eventStateUpdate(playState._normalizedPlayTime);
-        this.transitionEnabled && needApplyTransition && this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
-        return;
+
+        if (this.transitionEnabled && needApplyTransition) {
+            let shouldApplyTransition = false;
+            if (this.transitionInterval > 0) {
+                const now = Laya.timer.currTimer;
+                if (this._nextTransitionCheckTime < now) {
+                    shouldApplyTransition = true;
+                    this._nextTransitionCheckTime = now + this.transitionInterval;
+                }
+            }
+            else {
+                shouldApplyTransition = true;
+            }
+            if (shouldApplyTransition) {
+                this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
+            }
+        }
     }
 
     /**
