@@ -156,8 +156,11 @@ export class Sprite extends Node {
     }
 
     /** @ignore */
-    constructor() {
+    constructor(name:string = null) {
         super();
+        if (name) {
+            this.name = name;
+        }
     }
 
     /**
