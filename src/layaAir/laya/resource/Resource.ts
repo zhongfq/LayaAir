@@ -2,6 +2,7 @@ import { LayaEnv } from "../../LayaEnv";
 import { ILaya } from "../../ILaya";
 import { EventDispatcher } from "../events/EventDispatcher";
 import { Pool } from "../utils/Pool";
+import { Laya } from "../../Laya";
 
 var _idCounter: number = 0;
 var _disposingCounter: number = 0;
@@ -135,6 +136,11 @@ export class UnusedResource<T extends Resource> {
  */
 export class Resource extends EventDispatcher {
     static readonly unusedResources: UnusedResource<Resource> = new UnusedResource();
+
+    /**
+     * @internal
+     */
+    static internalResources: Map<Resource, true> = new Map();
     
     /**@ignore */
     static _idResourcesMap: any = {};
@@ -505,6 +511,10 @@ export class Resource extends EventDispatcher {
     destroy(): void {
         if (this._destroyed)
             return;
+
+        if (Resource.internalResources.has(this)) {
+            return;
+        }
 
         this._destroyed = true;
         this.lock = false; //解锁资源，强制清理
