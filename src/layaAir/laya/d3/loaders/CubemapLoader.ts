@@ -26,6 +26,9 @@ export class CubemapLoader implements IResourceLoader {
                 "BlackTextureCube.ltc": TextureCube.blackTexture,
                 "GrayTextureCube.ltc": TextureCube.grayTexture,
             };
+            for (const key in internalResources) {
+                Resource.internalResources.set(internalResources[key], true);
+            }
         }
     }
 
