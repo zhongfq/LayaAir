@@ -362,6 +362,10 @@ export class Node extends EventDispatcher {
      * @returns 返回添加的节点。
      */
     addChild<T extends Node>(node: T): T {
+        if (node.destroyed) {
+            console.error("node is destroyed");
+            return node;
+        }
         if (!node || this._destroyed || node as any === this) return node;
         if ((<any>node)._zOrder) this._setBit(NodeFlags.HAS_ZORDER, true);
         if (node._parent === this) {
@@ -405,6 +409,10 @@ export class Node extends EventDispatcher {
      * @returns 返回添加的节点。
      */
     addChildAt(node: Node, index: number): Node {
+        if (node.destroyed) {
+            console.error("node is destroyed");
+            return node;
+        }
         if (!node || this._destroyed || node === this) return node;
         if ((<any>node)._zOrder) this._setBit(NodeFlags.HAS_ZORDER, true);
         if (index >= 0 && index <= this._children.length) {
@@ -1081,9 +1089,11 @@ export class Node extends EventDispatcher {
         }
         this._setBit(NodeFlags.ACTIVE_INHIERARCHY, false);
 
-        for (let i = 0, n = this._children.length; i < n; i++) {
-            let child = this._children[i];
-            (child && !child._getBit(NodeFlags.NOT_ACTIVE)) && (child._inActiveHierarchy(activeChangeScripts, fromSetter));
+        if (this._children) {
+            for (let i = 0, n = this._children.length; i < n; i++) {
+                let child = this._children[i];
+                (child && !child._getBit(NodeFlags.NOT_ACTIVE)) && (child._inActiveHierarchy(activeChangeScripts, fromSetter));
+            }
         }
         this.onDisable();
     }
