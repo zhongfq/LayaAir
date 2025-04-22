@@ -1,6 +1,7 @@
 import { RenderCapable } from "../../RenderEngine/RenderEnum/RenderCapable";
 import { LayaGL } from "../../layagl/LayaGL";
 import { ILoadTask, IResourceLoader, Loader } from "../../net/Loader";
+import { Resource } from "../../resource/Resource";
 import { Texture2DArray } from "../../resource/Texture2DArray";
 import { Utils } from "../../utils/Utils";
 
@@ -18,6 +19,9 @@ export class Texture2DArrayLoader implements IResourceLoader {
             internalResources = {
                 "default": Texture2DArray.defaultTexture
             };
+            for (const key in internalResources) {
+                Resource.internalResources.set(internalResources[key], true);
+            }
         }
     }
 
