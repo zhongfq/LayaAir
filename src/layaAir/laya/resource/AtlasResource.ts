@@ -39,10 +39,13 @@ export class AtlasResource extends Resource {
         this.frames = frames;
 
         for (let tex of frames) {
+            this._referenceCount += tex.referenceCount;
             tex._addReference();
             tex._atlas = this;
         }
         for (let tex of textures) {
+            // 有可能纹理已经有引用计数了，为了实现纹理对图集引用计数平衡性，这里需要累加
+            this._referenceCount += tex.referenceCount;
             tex._addReference();
             tex._atlas = this;
         }

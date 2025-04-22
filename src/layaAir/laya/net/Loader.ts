@@ -19,6 +19,7 @@ import { AssetDb } from "../resource/AssetDb";
 import { BaseTexture } from "../resource/BaseTexture";
 import { LayaEnv } from "../../LayaEnv";
 import { XML } from "../html/XML";
+import { Laya } from "../../Laya";
 
 export interface ILoadTask {
     readonly type: string;
@@ -412,6 +413,50 @@ export class Loader extends EventDispatcher {
      * @returns 返回一个 Promise，解析为加载的资源。
      */
     load(url: string | ILoadURL | (string | Readonly<ILoadURL>)[], arg1?: string | Readonly<ILoadOptions> | Handler, arg2?: ProgressCallback | Handler, arg3?: string, priority?: number, cache?: boolean, group?: string, ignoreCache?: boolean, useWorkerLoader?: boolean): Promise<any> {
+        return new Promise((resolve) => {
+            const urls = Array.isArray(url) ? url : [url];
+            const loaded: Resource[] = [];
+            const doLoad = (urlstr: string | Readonly<ILoadURL>) => {
+                this._load(urlstr, arg1, null, arg3, priority, cache, group, ignoreCache, useWorkerLoader).then((res) => {
+                    if (res instanceof Resource) {
+                        if (res.destroyed) {
+                            const path = typeof urlstr === 'string' ? urlstr : urlstr.url;
+                            console.error(`Loader._load: resource has been destroyed, url: ${path}`);
+                            this.clearRes(path);
+                            doLoad(urlstr);
+                            return;
+                        }
+                        res.addReference();
+                    }
+                    loaded.push(res);
+                    if (arg2) {
+                       if (arg2 instanceof Handler) {
+                        arg2.runWith(loaded.length / urls.length);
+                       } else {
+                        arg2(loaded.length / urls.length);
+                       }
+                    }
+                    if (loaded.length === urls.length) {
+                        resolve(Array.isArray(url) ? loaded.slice() : loaded[0]);
+                        ILaya.systemTimer.once(1000, this, ()=> {
+                            loaded.forEach((v) => {
+                                if (v instanceof Resource) {
+                                    v.removeReference();
+                                }
+                            });
+                        })
+                    }
+                })
+            }
+            if (urls.length > 0) {
+                urls.forEach(doLoad);
+            } else {
+                resolve([]);
+            }
+        });
+    }
+
+    private async _load(url: string | ILoadURL | (string | Readonly<ILoadURL>)[], arg1?: string | Readonly<ILoadOptions> | Handler, arg2?: ProgressCallback | Handler, arg3?: string, priority?: number, cache?: boolean, group?: string, ignoreCache?: boolean, useWorkerLoader?: boolean): Promise<any> {
         let complete: Handler;
         let type: string;
         let options: ILoadOptions = dummyOptions;
@@ -480,7 +525,7 @@ export class Loader extends EventDispatcher {
     }
 
     /** @internal */
-    _load1(url: string, type: string, options: ILoadOptions, onProgress: ProgressCallback): Promise<any> {
+    private _load1(url: string, type: string, options: ILoadOptions, onProgress: ProgressCallback): Promise<any> {
         if (LayaEnv.isPreview) {
             if (url.startsWith("res://")) {
                 let uuid = url.substring(6);
@@ -504,7 +549,7 @@ export class Loader extends EventDispatcher {
     }
 
     /** @internal */
-    _load2(url: string, uuid: string, type: string, options: ILoadOptions, onProgress: ProgressCallback): Promise<any> {
+    private _load2(url: string, uuid: string, type: string, options: ILoadOptions, onProgress: ProgressCallback): Promise<any> {
         let { ext, typeId, main, loaderType } = Loader.getURLInfo(url, type);
         if (!loaderType) {
             !options.silent && Loader.warnFailed(url, type ? `unsupported load type:${type}` : !url.startsWith("res://") ? `unsupported suffix` : "", options.initiator?.url);
