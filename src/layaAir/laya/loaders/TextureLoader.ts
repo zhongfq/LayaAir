@@ -29,6 +29,9 @@ export class Texture2DLoader implements IResourceLoader {
                 "GrayTexture.png": Texture2D.grayTexture,
                 "NormalTexture.png": Texture2D.normalTexture,
             };
+            for (const key in internalResources) {
+                Resource.internalResources.set(internalResources[key], true);
+            }
         }
     }
 
