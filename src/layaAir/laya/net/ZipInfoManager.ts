@@ -6,8 +6,8 @@ class ZipEntry {
 }
 
 export class ZipInfoManager {
-    private static _fileDict: Record<string, ZipEntry> = {};
-    private static _zipDict: Record<string, string[]> = {};
+    static _fileDict: Record<string, ZipEntry> = {};
+    static _zipDict: Record<string, string[]> = {};
 
     static addZip(zipPath: string, files: string[]) {
         const baseZipDir = zipPath.replace(/.zip$/, "/");
