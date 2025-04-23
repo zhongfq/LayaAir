@@ -670,7 +670,7 @@ export class Loader extends EventDispatcher {
                 task.onComplete.invoke(content);
                 return content;
             }
-        }).catch(error => {
+        }).catch((error) => {
             !options.silent && Loader.warnFailed(url, error, options.initiator?.url);
 
             if (task.options.cache !== false)
@@ -754,7 +754,7 @@ export class Loader extends EventDispatcher {
         }
     }
 
-    private download(item: DownloadItem) {
+    download(item: DownloadItem) {
         this._downloadings.add(item);
         Loader.LoaderStat_LoadRequestCount++;
         item.startTime = performance.now();
@@ -810,7 +810,7 @@ export class Loader extends EventDispatcher {
         }
     }
 
-    private completeItem(item: DownloadItem, content: any, error?: string) {
+    completeItem(item: DownloadItem, content: any, error?: string) {
         this._downloadings.delete(item);
         Loader.LoaderStat_LoadRequestTime += performance.now() - item.startTime;
         if (content) {
@@ -1553,7 +1553,7 @@ class LoadTask implements ILoadTask {
 const loadTaskPool: Array<LoadTask> = [];
 const dummyOptions: ILoadOptions = {};
 
-interface DownloadItem {
+export interface DownloadItem {
     url: string;
     originalUrl: string;
     contentType: string;
