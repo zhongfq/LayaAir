@@ -18,11 +18,18 @@ export class SoundChannel extends EventDispatcher {
      * @zh 循环次数。
      */
     loops: number;
-    /**
+   
+    private _startTime1: number = 0;
+     /**
      * @en The start time of sound playback.
      * @zh 播放声音开始时间。
      */
-    startTime: number;
+    public get startTime(): number {
+        return this._startTime1;
+    }
+    public set startTime(value: number) {
+        this._startTime1 = value;
+    }
     /**
      * @en Indicates whether the sound is paused. 
      * @zh 表示声音是否已暂停。
