@@ -83,9 +83,9 @@ export class SoundManager {
     private static _blurPaused: boolean = false;
     
     private static _isActive: boolean = true;
-    /**@internal */
+    
     static _soundClass: new () => any;
-    /**@internal */
+    
     static _musicClass: new () => any;
     
     private static _lastSoundUsedTimeDic: any = {};

@@ -215,7 +215,7 @@ export class Stage extends Sprite {
      * @zh 是否启用屏幕适配，可以适配后，在某个时候关闭屏幕适配，防止某些操作导致的屏幕意外改变。
      */
     screenAdaptationEnabled: boolean = true;
-    /**@internal */
+    
     _canvasTransform: Matrix = new Matrix();
     /**@internal */
     _mouseMoveTime: number = 0;
