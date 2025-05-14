@@ -57,6 +57,14 @@ export interface ILoadURL extends ILoadOptions {
     url: string;
 }
 
+interface Backup {
+    version: Record<string, string>;
+    atlas: Record<string, string>;
+    shader: Record<string, string>;
+    metaMap: Record<string, any>;
+    preloaded: Record<string, any>;
+}
+
 interface ContentTypeMap {
     "text": string,
     "json": any,
@@ -82,6 +90,8 @@ const NullURLInfo: Readonly<URLInfo> = { ext: null, typeId: null, main: false, l
  * @zh `Loader` 类可用来加载文本、JSON、XML、二进制、图像等资源。
  */
 export class Loader extends EventDispatcher {
+    static verbose: boolean = false;
+    
     /**
      * @en Text type, returns a TextResource object containing a string after loading is complete.
      * @zh 文本类型，加载完成后返回包含 string 的 TextResource 对象。
@@ -1355,7 +1365,39 @@ export class Loader extends EventDispatcher {
         }
     }
 
+    private _backups:Backup | null;
+
+    private _backup(obj: Record<string, any>): Record<string, any> {
+        const result: Record<string, any> = {};
+        for (let k in obj) {
+           result[k] = obj[k];
+        }
+        return result;
+    }
+
+    private _restore(obj: Record<string, any>, target: Record<string, any>) {
+        for (let k in obj) {
+            target[k] = obj[k];
+        }
+    }
+
     loadHotfix(url: string, onProgress?: ProgressCallback): Promise<any> {
+        if (!this._backups) {
+            this._backups = {
+                version: this._backup(URL.version),
+                atlas: this._backup(AtlasInfoManager._fileLoadDic),
+                shader: this._backup(AssetDb.inst.shaderNameMap),
+                metaMap: this._backup(AssetDb.inst.metaMap),
+                preloaded: this._backup(Loader.preLoadedMap)
+            }
+        } else {
+            console.info("restore backup, prepare to load hotfix");
+            this._restore(this._backups.version, URL.version);
+            this._restore(this._backups.atlas, AtlasInfoManager._fileLoadDic);
+            this._restore(this._backups.shader, AssetDb.inst.shaderNameMap);
+            this._restore(this._backups.preloaded, Loader.preLoadedMap);
+            this._restore(this._backups.metaMap, AssetDb.inst.metaMap);
+        }
         return this._loadFileConfig(url, "", null, onProgress);
     }
 
