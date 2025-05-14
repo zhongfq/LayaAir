@@ -35,6 +35,7 @@ export class AtlasInfoManager {
     }
 
     static addAtlas(atlasUrl: string, prefix: string, frames: Array<string>) {
+        prefix = atlasUrl.replace(/\.[^.]+$/, "/");
         prefix = URL.formatURL(prefix);
         let dic = AtlasInfoManager._fileLoadDic;
         let entry = { url: atlasUrl };
