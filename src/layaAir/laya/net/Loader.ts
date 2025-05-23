@@ -91,7 +91,7 @@ const NullURLInfo: Readonly<URLInfo> = { ext: null, typeId: null, main: false, l
  */
 export class Loader extends EventDispatcher {
     static verbose: boolean = false;
-    
+
     /**
      * @en Text type, returns a TextResource object containing a string after loading is complete.
      * @zh 文本类型，加载完成后返回包含 string 的 TextResource 对象。
@@ -324,7 +324,7 @@ export class Loader extends EventDispatcher {
      */
     static preLoadedMap: { [url: string]: any } = {};
 
-    retry?: (url:string, handler:(retry:boolean) => void) => void;
+    retry?: (url: string, handler: (retry: boolean) => void) => void;
 
     private _loadings: Map<string, LoadTask>;
     private _queue: Array<DownloadItem>;
@@ -440,15 +440,15 @@ export class Loader extends EventDispatcher {
                     }
                     loaded.push(res);
                     if (arg2) {
-                       if (arg2 instanceof Handler) {
-                        arg2.runWith(loaded.length / urls.length);
-                       } else {
-                        arg2(loaded.length / urls.length);
-                       }
+                        if (arg2 instanceof Handler) {
+                            arg2.runWith(loaded.length / urls.length);
+                        } else {
+                            arg2(loaded.length / urls.length);
+                        }
                     }
                     if (loaded.length === urls.length) {
                         resolve(Array.isArray(url) ? loaded.slice() : loaded[0]);
-                        ILaya.systemTimer.once(1000, this, ()=> {
+                        ILaya.systemTimer.once(1000, this, () => {
                             loaded.forEach((v) => {
                                 if (v instanceof Resource) {
                                     v.removeReference();
@@ -841,7 +841,7 @@ export class Loader extends EventDispatcher {
             if (this._downloadings.size < this.maxLoader && this._queue.length > 0) {
                 this.download(this._queue.shift());
             }
-            
+
             if (this.retry) {
                 this.retry(item.originalUrl, (retry) => {
                     if (retry) {
@@ -999,14 +999,15 @@ export class Loader extends EventDispatcher {
         else
             ret = resArr[1]; //主资源
 
-        if ((ret instanceof Resource) && ret.destroyed)
-            return undefined;
-        else {
-            if (ret) {
-                Resource.unusedResources.reset(ret);
+        if ((ret instanceof Resource)) {
+            if (ret.destroyed) {
+                return undefined;
+            } else {
+                ret.addReference();
+                Laya.timer.once(1000, this, () => ret.removeReference());
             }
-            return ret;
         }
+        return ret;
     }
 
     /**
@@ -1368,12 +1369,12 @@ export class Loader extends EventDispatcher {
         }
     }
 
-    private _backups:Backup | null;
+    private _backups: Backup | null;
 
     private _backup(obj: Record<string, any>): Record<string, any> {
         const result: Record<string, any> = {};
         for (let k in obj) {
-           result[k] = obj[k];
+            result[k] = obj[k];
         }
         return result;
     }
