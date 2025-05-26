@@ -1004,7 +1004,7 @@ export class Loader extends EventDispatcher {
                 return undefined;
             } else {
                 ret.addReference();
-                Laya.timer.once(1000, this, () => ret.removeReference());
+                ILaya.systemTimer.once(1000, this, () => ret.removeReference());
             }
         }
         return ret;
