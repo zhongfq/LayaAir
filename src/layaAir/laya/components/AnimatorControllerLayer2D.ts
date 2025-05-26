@@ -248,6 +248,7 @@ export class AnimatorControllerLayer2D implements IClone {
         if (this.getStateByName(stateName)) {
             throw new Error("AnimatorControllerLayer:this stat's name has exist.");
         } else {
+            state._addReference(1)
             this._states.push(state);
             if (stateName == this._defaultStateNameCatch) {
                 this._defaultState = state;
