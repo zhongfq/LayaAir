@@ -1,6 +1,7 @@
 import { Node } from "../display/Node";
 import { ILoadURL } from "../net/Loader";
 import { Prefab } from "./HierarchyResource";
+import { Resource } from "./Resource";
 
 interface PrefabNodeData {
     name?: string;
@@ -111,6 +112,12 @@ export class PrefabImpl extends Prefab {
     create(options?: Record<string, any>, errors?: any[]): Node {
         if (this.destroyed) {
             throw new Error(`Prefab has been destroyed: ${this.url}`);
+        }
+
+        for (const dep of this.deps) {
+            if (dep instanceof Resource && dep.destroyed) {
+                throw new Error(`Resource has been destroyed: ${dep.url} ${dep.referenceCount}`);
+            }
         }
 
         options = options || {};
