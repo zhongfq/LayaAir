@@ -4,6 +4,7 @@ import { URL } from "../net/URL";
 import { AssetDb } from "../resource/AssetDb";
 import { Prefab } from "../resource/HierarchyResource";
 import { IHierarchyParserAPI, PrefabImpl } from "../resource/PrefabImpl";
+import { Resource } from "../resource/Resource";
 import { HierarchyParser } from "./HierarchyParser";
 
 export class HierarchyLoader implements IResourceLoader {
@@ -42,6 +43,12 @@ export class HierarchyLoader implements IResourceLoader {
         delete options.cache;
         delete options.ignoreCache;
         return task.loader.load(links, options, task.progress.createCallback()).then((resArray: any[]) => {
+            for (let i = 0; i < links.length; i++) {
+                const res = resArray[i];
+                if (!res || res instanceof Resource && res.destroyed) {
+                    throw new Error(`HierarchyLoader: resource has been destroyed or null, url: ${links[i]} ${res}`);
+                }
+            }
             let res = new PrefabImpl(api, data, version);
             res.fromDCC = fromDCC;
             res.addDeps(resArray);
