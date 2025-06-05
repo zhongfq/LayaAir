@@ -1441,7 +1441,7 @@ export class Animator extends Component {
                     crossState = controllerLayer._crossPlayState; //dming ---fix bug
                     var crossWeight: number = ((crossPlayStateInfo._elapsedTime - startPlayTime) / crossScale) / crossDuratuion;
                     var needUpdateFinishcurrentState = false;
-                    if (crossWeight >= 1.0) {
+                    if (crossWeight >= 0.99999) {//算出来crossWeight有可能是0.9999999999999,所以这里用>=0.99999当作是>=1.0
                         if (needRender) {
                             this._updateClipDatas(crossState, addtive, crossPlayStateInfo, controllerLayer.avatarMask);
                             this._setClipDatasToNode(crossState, addtive, controllerLayer.defaultWeight, i === 0, controllerLayer);
