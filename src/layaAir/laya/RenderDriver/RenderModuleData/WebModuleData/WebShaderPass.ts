@@ -17,7 +17,7 @@ export class WebShaderPass implements IShaderPassData {
         this._renderState = value;
     }
     /** @internal */
-    protected _cacheShaderHierarchy: number = 1;
+    protected _cacheShaderHierarchy: number = 20;
 
     public get validDefine(): WebDefineDatas {
         return this._validDefine;
