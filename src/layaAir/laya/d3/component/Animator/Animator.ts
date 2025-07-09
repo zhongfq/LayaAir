@@ -474,6 +474,23 @@ export class Animator extends Component {
         clip!._evaluateClipDatasRealTime(clip!._nodes!, curPlayTime, currentFrameIndices!, addtive, frontPlay, animatorState._realtimeDatas, animatorMask);
     }
 
+
+    /**
+     * 更新clip数据，按帧数
+     * @internal
+     */
+    private _updateClipDatasByFrameIndex(animatorState: AnimatorState, addtive: boolean, frameIndex: number, animatorMask: AvatarMask = null): void {
+        let clip = animatorState._clip!;
+        const totallFrame = Math.round(clip._duration * clip._frameRate);
+        frameIndex = Math.min(frameIndex, totallFrame);
+        frameIndex = Math.max(frameIndex, 0);
+
+        let curPlayTime = clip._duration * frameIndex / totallFrame;
+        let currentFrameIndices = animatorState._currentFrameIndices;
+        let frontPlay = true;
+        clip!._evaluateClipDatasRealTime(clip!._nodes!, curPlayTime, currentFrameIndices!, addtive, frontPlay, animatorState._realtimeDatas, animatorMask);
+    }
+
     /**
      * @internal
      */
@@ -1516,6 +1533,31 @@ export class Animator extends Component {
                 this._animatorParams[id] = false;
             }
         }
+    }
+
+    /**
+     * @en Set the pose of the animation.
+     * @param animName The name of the animation.
+     * @param frame The frame of the animation.
+     * @param layerIndex The layer index.
+     * @zh 设置动画的姿势。
+     * @param animName 动画名称。
+     * @param frame 动画帧。
+     * @param layerIndex 层索引。
+     * -- dming
+     */
+    setPose(animName: string, frame: number, layerIndex: number = 0) {
+        const controllerLayer = this.getControllerLayer(layerIndex);
+        const animatorState = controllerLayer.getAnimatorState(animName);
+        if (!animatorState) {
+            console.error("Animator: unknown animName", animName);
+            return;
+        }
+        const addtive: boolean = false;
+        const weight = controllerLayer.defaultWeight;
+        const isFirstLayer = true;
+        this._updateClipDatasByFrameIndex(animatorState, addtive, frame, controllerLayer.avatarMask);
+        this._setClipDatasToNode(animatorState, addtive, weight, isFirstLayer, controllerLayer);
     }
 
     /**
