@@ -100,6 +100,10 @@ export class AnimationClip extends Resource {
 		return this._duration;
 	}
 
+	get frameRate(): number {
+		return this._frameRate;
+	}
+
 	/**
 	 * @ignore
 	 * @en Creates an instance of AnimationClip.
