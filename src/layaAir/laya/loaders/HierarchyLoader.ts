@@ -1,5 +1,5 @@
 import { Sprite } from "../display/Sprite";
-import { IResourceLoader, ILoadTask, Loader, ILoadOptions } from "../net/Loader";
+import { IResourceLoader, ILoadTask, Loader, ILoadOptions, ILoadURL } from "../net/Loader";
 import { URL } from "../net/URL";
 import { AssetDb } from "../resource/AssetDb";
 import { Prefab } from "../resource/HierarchyResource";
@@ -46,7 +46,8 @@ export class HierarchyLoader implements IResourceLoader {
             for (let i = 0; i < links.length; i++) {
                 const res = resArray[i];
                 if (!res || res instanceof Resource && res.destroyed) {
-                    throw new Error(`HierarchyLoader: resource has been destroyed or null, url: ${links[i]} ${res}`);
+                    const url = typeof links[i] === 'string' ? links[i] : (links[i] as ILoadURL).url;
+                    throw new Error(`HierarchyLoader: resource has been destroyed or null, url: ${url} ${res}`);
                 }
             }
             let res = new PrefabImpl(api, data, version);
