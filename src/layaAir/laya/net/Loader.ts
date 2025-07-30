@@ -426,19 +426,21 @@ export class Loader extends EventDispatcher {
         return new Promise((resolve) => {
             const urls = Array.isArray(url) ? url : [url];
             const loaded: Resource[] = [];
-            const doLoad = (urlstr: string | Readonly<ILoadURL>) => {
+            let loadedCount = 0;
+            const doLoad = (urlstr: string | Readonly<ILoadURL>, idx: number) => {
                 this._load(urlstr, arg1, null, arg3, priority, cache, group, ignoreCache, useWorkerLoader).then((res) => {
                     if (res instanceof Resource) {
                         if (res.destroyed) {
                             const path = typeof urlstr === 'string' ? urlstr : urlstr.url;
                             console.error(`Loader._load: resource has been destroyed, url: ${path}`);
                             this.clearRes(path);
-                            doLoad(urlstr);
+                            doLoad(urlstr, idx);
                             return;
                         }
                         res.addReference();
                     }
-                    loaded.push(res);
+                    loaded[idx] = res;
+                    loadedCount++;
                     if (arg2) {
                         if (arg2 instanceof Handler) {
                             arg2.runWith(loaded.length / urls.length);
@@ -446,7 +448,7 @@ export class Loader extends EventDispatcher {
                             arg2(loaded.length / urls.length);
                         }
                     }
-                    if (loaded.length === urls.length) {
+                    if (loadedCount === urls.length) {
                         resolve(Array.isArray(url) ? loaded.slice() : loaded[0]);
                         ILaya.systemTimer.once(1000, this, () => {
                             loaded.forEach((v) => {
@@ -459,7 +461,7 @@ export class Loader extends EventDispatcher {
                 })
             }
             if (urls.length > 0) {
-                urls.forEach(doLoad);
+                urls.forEach((v, i) => doLoad(v, i));
             } else {
                 resolve([]);
             }
