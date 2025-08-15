@@ -74,7 +74,11 @@ export class SkinnedMeshRenderer extends MeshRenderer {
         this._localBounds = value;
         this.boundsChange = true;
         this.geometryBounds = this._localBounds;
+        this._updateMeshBounds();
     }
+
+
+    private _meshBounds: Bounds
 
     /**
      * @en Root node.
@@ -135,6 +139,7 @@ export class SkinnedMeshRenderer extends MeshRenderer {
     constructor() {
         super();
         this.localBounds = new Bounds(Vector3.ZERO, Vector3.ZERO);
+        this._meshBounds = new Bounds(Vector3.ZERO, Vector3.ZERO);
         this._baseRenderNode.shaderData.addDefine(SkinnedMeshSprite3DShaderDeclaration.SHADERDEFINE_BONE);
         this._baseRenderNode.renderNodeType = BaseRenderType.SkinnedMeshRender;
     }
@@ -174,6 +179,38 @@ export class SkinnedMeshRenderer extends MeshRenderer {
     }
 
     /**
+         * @internal
+         */
+    _calculateBoundingBox() {
+        // 蒙皮网格的bounds计算需要考虑rootBone的变换
+        const isBaked = this._baseRenderNode.renderNodeType === BaseRenderType.SimpleSkinRender;
+        let worldMatrix
+        if (isBaked) {
+            worldMatrix = this.rootBone.transform.worldMatrix;
+        } else {
+            worldMatrix = this.owner.transform.worldMatrix;
+        }
+        this._meshBounds._tranform(worldMatrix, this._bounds)
+    }
+
+    protected _updateMeshBounds() {
+        if (this._mesh) {
+            let bounds: Bounds;
+            if (this._mesh.morphTargetData) {
+                bounds = this._mesh.morphTargetData.bounds;
+            } else {
+                bounds = this._mesh.bounds;
+            }
+            // bounds.cloneTo(this._meshBounds);
+            const temp = Vector3._tempVector3;
+            Vector3.add(bounds.getCenter(), this.localBounds.getCenter(), temp);//包围盒中心需要叠加localBounds的中心
+            this._meshBounds.setCenter(temp);
+            this._meshBounds.setExtent(bounds.getExtent());
+        }
+    }
+
+
+    /**
      * @internal
      */
     _onSkinMeshChange(mesh: Mesh): void {
@@ -181,6 +218,7 @@ export class SkinnedMeshRenderer extends MeshRenderer {
             this._changeVertexDefine(mesh);
             this._changeMorphData(mesh);
             this._mesh = mesh;
+            this._updateMeshBounds();
             this._isISkinRenderNode() && this._ownerSkinRenderNode.setCacheMesh(mesh);
             var count: number = mesh.subMeshCount;
             this._renderElements.length = count;
