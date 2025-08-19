@@ -81,6 +81,8 @@ export class InputManager {
     private _lastTouchTime: number;
     private _lastTouchId: number = 0;
 
+    private _trackTouches: Map<Node, TouchInfo> = new Map();
+
     /**
      * @ignore
      */
@@ -255,6 +257,8 @@ export class InputManager {
         //console.log("handleMouse", type);
         let touch: TouchInfo = this._mouseTouch;
 
+        this._trackTouches.clear();
+
         _tempPoint.setTo(ev.pageX || ev.clientX, ev.pageY || ev.clientY);
         if (this._stage._canvasTransform)
             this._stage._canvasTransform.invertTransformPoint(_tempPoint);
@@ -279,6 +283,7 @@ export class InputManager {
                 touch.move();
 
                 if (InputManager.mouseEventsEnabled) {
+                    this.trackBeforeTouch(touch.target, touch);
                     touch.target.bubbleEvent(Event.MOUSE_MOVE, touch.event);
 
                     for (let t of touch.downTargets)
@@ -300,6 +305,8 @@ export class InputManager {
                 if (InputManager.mouseEventsEnabled) {
                     this.handleFocus();
 
+                    this.trackBeforeTouch(touch.target, touch);
+
                     if (ev.button == 0)
                         touch.target?.bubbleEvent(Event.MOUSE_DOWN, touch.event);
                     else
@@ -314,6 +321,8 @@ export class InputManager {
                 touch.event.button = ev.button;
 
                 if (InputManager.mouseEventsEnabled) {
+                    this.trackBeforeTouch(touch.target, touch);
+
                     if (ev.button == 0)
                         touch.target?.bubbleEvent(Event.MOUSE_UP, touch.event);
                     else
@@ -354,6 +363,18 @@ export class InputManager {
                 touch.event.delta = 0;
             }
         }
+
+        for (let [target, touch] of this._trackTouches) {
+            target.bubbleEvent(Event.AFTER_TOUCH, touch.event);
+        }
+        this._trackTouches.clear();
+    }
+
+    private trackBeforeTouch(target: Node, touch: TouchInfo) {
+        if (!this._trackTouches.has(target)) {
+            target.bubbleEvent(Event.BEFORE_TOUCH, touch.event);
+            this._trackTouches.set(target, touch);
+        }
     }
 
     /**
@@ -368,6 +389,8 @@ export class InputManager {
         this._eventType = type;
         this._nativeEvent = ev;
         this._lastTouchTime = Browser.now();
+
+        this._trackTouches.clear();
 
         let touches = ev.changedTouches;
         for (let i = 0; i < touches.length; ++i) {
@@ -409,7 +432,7 @@ export class InputManager {
                         touch.move();
 
                         if (InputManager.mouseEventsEnabled) {
-
+                            this.trackBeforeTouch(touch.target, touch);
                             touch.target.bubbleEvent(Event.MOUSE_MOVE, touch.event);
 
                             for (let t of touch.downTargets)
@@ -419,8 +442,9 @@ export class InputManager {
                 }
             }
 
-            if (touch.lastRollOver != touch.target)
+            if (touch.lastRollOver != touch.target) {
                 this.handleRollOver(touch);
+            }
 
             if (type == 0) {
                 if (!touch.began) {
@@ -428,6 +452,7 @@ export class InputManager {
 
                     if (InputManager.mouseEventsEnabled) {
                         this.handleFocus();
+                        this.trackBeforeTouch(touch.target, touch);
                         touch.target?.bubbleEvent(Event.MOUSE_DOWN, touch.event);
                     }
                 }
@@ -437,6 +462,7 @@ export class InputManager {
                     touch.end();
 
                     if (InputManager.mouseEventsEnabled) {
+                        this.trackBeforeTouch(touch.target, touch);
                         touch.target?.bubbleEvent(Event.MOUSE_UP, touch.event);
 
                         if (touch.moved) {
@@ -468,6 +494,11 @@ export class InputManager {
                 this._touchPool.push(touch);
             }
         }
+
+        for (let [target, touch] of this._trackTouches) {
+            target.bubbleEvent(Event.AFTER_TOUCH, touch.event);
+        }
+        this._trackTouches.clear();
     }
 
     private getTouch(touchId: number, shouldCreate?: boolean): TouchInfo {

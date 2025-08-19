@@ -16,6 +16,14 @@ export class Event {
      */
     static readonly EMPTY: Readonly<Event> = new Event();
     /**
+     * 开始处理触摸事件之前触发
+     */
+    static BEFORE_TOUCH = "beforetouch";
+    /**
+     * 处理触摸事件之后触发
+     */
+    static AFTER_TOUCH = "aftertouch";
+    /**
      * @en Defines the value of the `type` property of a `mousedown` event object, triggered when pressed on a display object.
      * @zh 定义 `mousedown` 事件对象的 `type` 属性值，用于在显示对象上按下后触发。
      */
