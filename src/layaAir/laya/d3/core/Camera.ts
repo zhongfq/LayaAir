@@ -968,12 +968,12 @@ export class Camera extends BaseCamera {
             if (this._orthographic) {
                 var halfHeight: number = this.orthographicVerticalSize * 0.5;
                 var halfWidth: number = halfHeight * this.aspectRatio;
-                Matrix4x4.createOrthoOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, this.nearPlane, this.farPlane, this._projectionMatrix);
+                Matrix4x4.createOrthoOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, this.nearPlane, this.farPlane, this.projectionMatrix);
             } else {
-                Matrix4x4.createPerspective(3.1416 * this.fieldOfView / 180.0, this.aspectRatio, this.nearPlane, this.farPlane, this._projectionMatrix);
+                Matrix4x4.createPerspective(3.1416 * this.fieldOfView / 180.0, this.aspectRatio, this.nearPlane, this.farPlane, this.projectionMatrix);
             }
             if (this.skyRenderElement._renderElementOBJ)
-                this.skyRenderElement.caluclateProjectionMatrix(this._projectionMatrix, this.aspectRatio, this.nearPlane, this.farPlane, this.fieldOfView, this.orthographic);
+                this.skyRenderElement.caluclateProjectionMatrix(this.projectionMatrix, this.aspectRatio, this.nearPlane, this.farPlane, this.fieldOfView, this.orthographic);
         }
     }
 
@@ -1117,7 +1117,7 @@ export class Camera extends BaseCamera {
      */
     _updateCameraRenderData(context: RenderContext3D) {
         this._prepareCameraToRender();
-        this._applyViewProject(this.viewMatrix, this._projectionMatrix, context.invertY);
+        this._applyViewProject(this.viewMatrix, this.projectionMatrix, context.invertY);
         this._contextApply(context);
     }
 
@@ -1441,7 +1441,7 @@ export class Camera extends BaseCamera {
         this._rayViewport.y = this.viewport.y;
         this._rayViewport.width = this.viewport.width;
         this._rayViewport.height = this.viewport.height;
-        Picker.calculateCursorRay(_tempVector20, this._rayViewport, this._projectionMatrix, this.viewMatrix, null, out);
+        Picker.calculateCursorRay(_tempVector20, this._rayViewport, this.projectionMatrix, this.viewMatrix, null, out);
     }
 
     /**
@@ -1457,7 +1457,7 @@ export class Camera extends BaseCamera {
         _tempVector20.x = point.x * Config3D.pixelRatio * vp.width;
         _tempVector20.y = point.y * Config3D.pixelRatio * vp.height;
 
-        Picker.calculateCursorRay(_tempVector20, this.viewport, this._projectionMatrix, this.viewMatrix, null, out);
+        Picker.calculateCursorRay(_tempVector20, this.viewport, this.projectionMatrix, this.viewMatrix, null, out);
     }
 
     /**
@@ -1469,7 +1469,7 @@ export class Camera extends BaseCamera {
      * @param out  x、y、z为视口空间坐标,w为相对于摄像机的z轴坐标。
      */
     worldToViewportPoint(position: Vector3, out: Vector4): void {
-        Matrix4x4.multiply(this._projectionMatrix, this._viewMatrix, this._projectionViewMatrix);
+        Matrix4x4.multiply(this.projectionMatrix, this.viewMatrix, this._projectionViewMatrix);
         this.viewport.project(position, this._projectionViewMatrix, out);
         var r = Config3D.pixelRatio;
         let _wr = (out.x - this.viewport.x) / r;
