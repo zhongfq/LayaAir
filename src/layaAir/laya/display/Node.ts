@@ -1032,7 +1032,14 @@ export class Node extends EventDispatcher {
 
         for (let i = 0, n = arr.length; i < n; i++) {
             let comp = arr[i];
-            comp.owner && comp._setActive(active);
+            if (comp.owner) {
+                if (!active) {
+                    comp._setActive(false);
+                } else if (!comp.owner._getBit(NodeFlags.NOT_ACTIVE)) {
+                    comp._setActive(true);
+                }
+            }
+            // comp.owner && comp._setActive(active);
         }
 
         arr.length = 0;
