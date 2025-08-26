@@ -214,6 +214,12 @@ export class HttpRequest extends EventDispatcher {
     reset() {
         this.offAll();
         this._data = null;
+        this._http.onerror = this._http.onabort = this._http.onprogress = this._http.onload = null;
+        try {
+            this._http.abort();
+        } catch (e) {
+            // 忽略错误
+        }
     }
 }
 
