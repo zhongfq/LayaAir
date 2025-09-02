@@ -170,7 +170,7 @@ export class BitmapFont extends Resource {
     getTextWidth(text: string, fontSize?: number): number {
         let w = 0;
         for (let i = 0, n = text.length; i < n; i++) {
-            let g = this.dict[text.charCodeAt(i)];
+            let g = this.dict?.[text.charCodeAt(i)];
             if (g) {
                 let scale = this.autoScaleSize ? (fontSize / this.fontSize) : 1;
                 w += Math.round(g.advance * scale);
