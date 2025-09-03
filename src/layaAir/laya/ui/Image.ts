@@ -79,6 +79,9 @@ export class Image extends UIComponent {
     set source(value: Texture) {
         if (!this._graphics) return;
         this._graphics.source = value;
+        this._setPivotX(this._anchorX * this.width);
+        this._setPivotY(this._anchorY * this.height);
+        this._shouldRefreshLayout();
         this.event(Event.LOADED);
         this.repaint();
 
