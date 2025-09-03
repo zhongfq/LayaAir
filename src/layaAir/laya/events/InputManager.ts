@@ -371,7 +371,7 @@ export class InputManager {
     }
 
     private trackBeforeTouch(target: Node, touch: TouchInfo) {
-        if (!this._trackTouches.has(target)) {
+        if (target && !this._trackTouches.has(target)) {
             target.bubbleEvent(Event.BEFORE_TOUCH, touch.event);
             this._trackTouches.set(target, touch);
         }
