@@ -84,6 +84,10 @@ export class List extends Box {
     protected _scrollType: ScrollType = 0;
     protected _vScrollBarSkin: string;
     protected _hScrollBarSkin: string;
+    protected _paddingLeft: number = 0;
+    protected _paddingRight: number = 0;
+    protected _paddingTop: number = 0;
+    protected _paddingBottom: number = 0;
     private _preLen = 0;
 
     /**
@@ -418,10 +422,11 @@ export class List extends Box {
             let numY = this._isVertical ? this.repeatY : this.repeatX;
             let lineCount = Math.ceil(length / numX);
             let total = this._cellOffset > 0 ? this.totalPage + 1 : this.totalPage;
+            let padding = this._isVertical ? (this._paddingTop + this._paddingBottom) : (this._paddingLeft + this._paddingRight);
             if (total > 1 && lineCount >= numY) {
                 this._scrollBar.scrollSize = this._cellSize;
                 this._scrollBar.thumbPercent = numY / lineCount;
-                this._scrollBar.setScroll(0, (lineCount - numY) * this._cellSize + this._cellOffset, this._scrollBar.value);
+                this._scrollBar.setScroll(0, (lineCount - numY) * this._cellSize + this._cellOffset  + padding, this._scrollBar.value);
             } else {
                 this._scrollBar.setScroll(0, 0, 0);
             }
@@ -509,7 +514,7 @@ export class List extends Box {
             let cacheBox = new Box();
             cacheBox.hideFlags = HideFlags.HideAndDontSave;
             cacheBox.cacheAs = "normal";
-            cacheBox.pos((this._isVertical ? 0 : startY) * cellWidth, (this._isVertical ? startY : 0) * cellHeight);
+            cacheBox.pos((this._isVertical ? 0 : startY) * cellWidth + this._paddingLeft, (this._isVertical ? startY : 0) * cellHeight + this._paddingTop);
             this._content.addChild(cacheBox);
             box = cacheBox;
         } else {
@@ -530,8 +535,8 @@ export class List extends Box {
                     cell = this.createItem();
                     cell.hideFlags = HideFlags.HideAndDontSave;
                 }
-                cell.x = (this._isVertical ? l : k) * cellWidth - box._x;
-                cell.y = (this._isVertical ? k : l) * cellHeight - box._y;
+                cell.x = (this._isVertical ? l : k) * cellWidth - box._x + this._paddingLeft;
+                cell.y = (this._isVertical ? k : l) * cellHeight - box._y + this._paddingTop;
                 cell.name = "item" + (k * numX + l);
                 box.addChild(cell);
                 this.addCell(cell);
@@ -758,7 +763,7 @@ export class List extends Box {
                     cellIndex = toIndex - i;
                 }
                 let pos = Math.floor(cellIndex / lineX) * this._cellSize;
-                this._isVertical ? cell.y = pos : cell.x = pos;
+                this._isVertical ? cell.y = (pos + this._paddingTop) : cell.x = (pos + this._paddingLeft);
                 this.renderItem(cell, cellIndex);
             }
             this._startIndex = index;
@@ -788,7 +793,7 @@ export class List extends Box {
         let lineX = (this._isVertical ? this.repeatX : this.repeatY);
         //let lineY = (this._isVertical ? this.repeatY : this.repeatX);
         let pos = Math.floor(cellIndex / lineX) * this._cellSize;
-        this._isVertical ? cell._y = pos : cell.x = pos;
+        this._isVertical ? cell.y = (pos + this._paddingTop) : cell.x = (pos + this._paddingLeft);
     }
 
     /**
