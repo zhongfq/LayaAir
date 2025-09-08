@@ -14,6 +14,21 @@ const _rollOverChain: Array<Node> = [];
 const _rollOutChain: Array<Node> = [];
 var _inst: InputManager;
 
+export interface WxWheelEvent {
+    deltaX: number;
+    deltaY: number;
+    deltaZ: number;
+    clientX: number;
+    clientY: number;
+    pageX?: number;
+    pageY?: number;
+    button?: number;
+    altKey?: boolean;
+    ctrlKey?: boolean;
+    shiftKey?: boolean;
+    metaKey?: boolean;
+}
+
 export class InputManager {
 
     /**
@@ -73,7 +88,7 @@ export class InputManager {
      * @zh 用于IDE处理。
      */
     protected _eventType: number;
-    protected _nativeEvent: MouseEvent | WheelEvent | TouchEvent;
+    protected _nativeEvent: MouseEvent | WheelEvent | TouchEvent | WxWheelEvent;
 
     protected _pressKeys: Set<string | number>;
     protected _keyEvent: Event;
@@ -219,6 +234,27 @@ export class InputManager {
             inst.handleMouse(ev, 4);
         }, { passive: false });
 
+        if (Browser.window.wx?.onWheel) {
+            interface OnWheelCallbackResult {
+                deltaX: number;
+                deltaY: number;
+                deltaZ: number;
+                x: number;
+                y: number;
+                timeStamp: number;
+            }            
+            Browser.window.wx.onWheel((result:OnWheelCallbackResult) => {
+                const ev:WxWheelEvent =  {
+                    deltaX: result.deltaX,
+                    deltaY: result.deltaY,
+                    deltaZ: result.deltaZ,
+                    clientX: result.x,
+                    clientY: result.y,
+                };
+                inst.handleMouse(ev, 4);
+            });
+        }
+
         canvas.addEventListener("pointerdown", ev => {
             canvas.setPointerCapture(ev.pointerId);
         });
@@ -246,7 +282,7 @@ export class InputManager {
      * @param ev 鼠标事件
      * @param type 事件类型
      */
-    handleMouse(ev: MouseEvent | WheelEvent, type: number) {
+    handleMouse(ev: MouseEvent | WheelEvent | WxWheelEvent, type: number) {
         this._eventType = type;
         this._nativeEvent = ev;
         this._lastTouchId = 0;
