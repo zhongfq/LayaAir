@@ -1,5 +1,5 @@
 import { Point } from "../maths/Point"
-import { WxWheelEvent } from "./InputManager";
+import { ITouchEvent, IWheelEvent } from "./InputManager";
 
 export interface ITouchInfo {
     touchId: number;
@@ -428,7 +428,7 @@ export class Event {
      * @en The original browser event.
      * @zh 原生浏览器事件。
      */
-    nativeEvent: MouseEvent | TouchEvent | WheelEvent | KeyboardEvent | WxWheelEvent;
+    nativeEvent: MouseEvent | TouchEvent | WheelEvent | KeyboardEvent | IWheelEvent | ITouchEvent;
 
     /** @internal */
     _stopped: boolean;

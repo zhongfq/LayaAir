@@ -14,7 +14,15 @@ const _rollOverChain: Array<Node> = [];
 const _rollOutChain: Array<Node> = [];
 var _inst: InputManager;
 
-export interface WxWheelEvent {
+const enum InputType {
+    START = 0,
+    END = 1,
+    MOVE = 2,
+    CANCEL = 3,
+    WHEEL = 4,
+}
+
+export interface IWheelEvent {
     deltaX: number;
     deltaY: number;
     deltaZ: number;
@@ -22,6 +30,34 @@ export interface WxWheelEvent {
     clientY: number;
     pageX?: number;
     pageY?: number;
+    button?: number;
+    altKey?: boolean;
+    ctrlKey?: boolean;
+    shiftKey?: boolean;
+    metaKey?: boolean;
+}
+
+interface ITouch {
+    identifier: number;
+    pageX: number;
+    pageY: number;
+    clientX: number;
+    clientY: number;
+    force: number;
+    radiusX: number;
+    radiusY: number;
+    rotationAngle: number;
+    screenX: number;
+    screenY: number;
+    target: EventTarget;
+}
+
+interface ITouchList extends Array<ITouch> {}
+
+export interface ITouchEvent {
+    changedTouches: ITouchList;
+    touches: ITouchList;
+    timeStamp: number;
     button?: number;
     altKey?: boolean;
     ctrlKey?: boolean;
@@ -88,7 +124,7 @@ export class InputManager {
      * @zh 用于IDE处理。
      */
     protected _eventType: number;
-    protected _nativeEvent: MouseEvent | WheelEvent | TouchEvent | WxWheelEvent;
+    protected _nativeEvent: MouseEvent | WheelEvent | TouchEvent | IWheelEvent | ITouchEvent;
 
     protected _pressKeys: Set<string | number>;
     protected _keyEvent: Event;
@@ -194,18 +230,18 @@ export class InputManager {
         canvas.addEventListener("mousedown", ev => {
             if (!Browser.onIE)
                 (ev.cancelable) && (ev.preventDefault());
-            inst.handleMouse(ev, 0);
+            inst.handleMouse(ev, InputType.START);
         }, { passive: false });
         canvas.addEventListener("mouseup", ev => {
             (ev.cancelable) && (ev.preventDefault());
-            inst.handleMouse(ev, 1);
+            inst.handleMouse(ev, InputType.END);
         }, { passive: false });
         canvas.addEventListener("mousemove", ev => {
             (ev.cancelable) && (ev.preventDefault());
-            inst.handleMouse(ev, 2);
+            inst.handleMouse(ev, InputType.MOVE);
         }, { passive: false });
         canvas.addEventListener("mouseout", ev => {
-            inst.handleMouse(ev, 3);
+            inst.handleMouse(ev, InputType.CANCEL);
         }, { passive: false });
         // canvas.addEventListener("mouseover", ev => {
         // });
@@ -213,25 +249,25 @@ export class InputManager {
         canvas.addEventListener("touchstart", ev => {
             if (!_isFirstTouch && !InputManager.isTextInputting)
                 (ev.cancelable) && (ev.preventDefault());
-            inst.handleTouch(ev, 0);
+            inst.handleTouch(ev, InputType.START);
         }, { passive: false });
         canvas.addEventListener("touchend", ev => {
             if (!_isFirstTouch && !InputManager.isTextInputting)
                 (ev.cancelable) && (ev.preventDefault());
             _isFirstTouch = false;
-            inst.handleTouch(ev, 1);
+            inst.handleTouch(ev, InputType.END);
         }, { passive: false });
         canvas.addEventListener("touchmove", ev => {
             (ev.cancelable) && (ev.preventDefault());
-            inst.handleTouch(ev, 2);
+            inst.handleTouch(ev, InputType.MOVE);
         }, { passive: false });
         canvas.addEventListener("touchcancel", ev => {
             (ev.cancelable) && (ev.preventDefault());
-            inst.handleTouch(ev, 3);
+            inst.handleTouch(ev, InputType.CANCEL);
         }, { passive: false });
 
         canvas.addEventListener("wheel", ev => {
-            inst.handleMouse(ev, 4);
+            inst.handleMouse(ev, InputType.WHEEL);
         }, { passive: false });
 
         if (Browser.window.wx?.onWheel) {
@@ -244,14 +280,14 @@ export class InputManager {
                 timeStamp: number;
             }            
             Browser.window.wx.onWheel((result:OnWheelCallbackResult) => {
-                const ev:WxWheelEvent =  {
+                const ev:IWheelEvent =  {
                     deltaX: result.deltaX,
                     deltaY: result.deltaY,
                     deltaZ: result.deltaZ,
                     clientX: result.x,
                     clientY: result.y,
                 };
-                inst.handleMouse(ev, 4);
+                inst.handleMouse(ev, InputType.WHEEL);
             });
         }
 
@@ -282,7 +318,7 @@ export class InputManager {
      * @param ev 鼠标事件
      * @param type 事件类型
      */
-    handleMouse(ev: MouseEvent | WheelEvent | WxWheelEvent, type: number) {
+    handleMouse(ev: MouseEvent | WheelEvent | IWheelEvent, type: InputType) {
         this._eventType = type;
         this._nativeEvent = ev;
         this._lastTouchId = 0;
@@ -304,7 +340,7 @@ export class InputManager {
         let y = _tempPoint.y / this._stage.clientScaleY;
 
         touch.event.nativeEvent = ev;
-        if (type == 3 || !InputManager.mouseEventsEnabled)
+        if (type == InputType.CANCEL || !InputManager.mouseEventsEnabled)
             touch.target = this._touchTarget = null;
         else {
             touch.target = this._touchTarget = this.getNodeUnderPoint(x, y);
@@ -331,7 +367,7 @@ export class InputManager {
         if (touch.lastRollOver != touch.target)
             this.handleRollOver(touch);
 
-        if (type == 0) {
+        if (type == InputType.START) {
             if (!touch.began) {
                 touch.begin();
                 this._touches[0] = touch;
@@ -350,7 +386,7 @@ export class InputManager {
                 }
             }
         }
-        else if (type == 1) {
+        else if (type == InputType.END) {
             if (touch.began && ev.button == touch.downButton) {
                 touch.end();
                 this._touches.length = 0;
@@ -392,7 +428,7 @@ export class InputManager {
                 touch.event.button = 0;
             }
         }
-        else if (type == 4) {
+        else if (type == InputType.WHEEL) {
             if (InputManager.mouseEventsEnabled) {
                 touch.event.delta = (<WheelEvent>ev).deltaY * 0.025;
                 touch.target?.bubbleEvent(Event.MOUSE_WHEEL, touch.event);
@@ -421,7 +457,7 @@ export class InputManager {
      * @param ev 触屏事件
      * @param type 事件类型
      */
-    handleTouch(ev: TouchEvent, type: number) {
+    handleTouch(ev: TouchEvent | ITouchEvent, type: InputType) {
         this._eventType = type;
         this._nativeEvent = ev;
         this._lastTouchTime = Browser.now();
@@ -445,14 +481,14 @@ export class InputManager {
             let x = _tempPoint.x / this._stage.clientScaleX;
             let y = _tempPoint.y / this._stage.clientScaleY;
 
-            let touch = this.getTouch(uTouch.identifier, type == 0);
+            let touch = this.getTouch(uTouch.identifier, type == InputType.START);
             if (!touch)
                 continue;
 
             touch.event.nativeEvent = ev;
             touch.event.touchId = touch.touchId;
             this._lastTouchId = touch.touchId;
-            if (type == 3 || !InputManager.mouseEventsEnabled)
+            if (type == InputType.CANCEL || !InputManager.mouseEventsEnabled)
                 touch.target = this._touchTarget = null;
             else {
                 touch.target = this._touchTarget = this.getNodeUnderPoint(x, y);
@@ -464,7 +500,7 @@ export class InputManager {
                 if (Math.abs(ix - touch.pos.x) > 1.5 || Math.abs(iy - touch.pos.y) > 1.5) {
                     touch.pos.setTo(ix, iy);
 
-                    if (type == 2) {
+                    if (type == InputType.MOVE) {
                         touch.move();
 
                         if (InputManager.mouseEventsEnabled) {
@@ -482,7 +518,7 @@ export class InputManager {
                 this.handleRollOver(touch);
             }
 
-            if (type == 0) {
+            if (type == InputType.START) {
                 if (!touch.began) {
                     touch.begin();
 
@@ -493,7 +529,7 @@ export class InputManager {
                     }
                 }
             }
-            else if (type == 1 || type == 3) {
+            else if (type == InputType.END || type == InputType.CANCEL) {
                 if (touch.began) {
                     touch.end();
 
@@ -506,7 +542,7 @@ export class InputManager {
                                 t.event(Event.MOUSE_DRAG_END, touch.event);
                         }
 
-                        if (type != 3) {
+                        if (type != InputType.CANCEL) {
                             let clickTarget = touch.clickTest();
                             if (clickTarget != null) {
                                 touch.event.isDblClick = touch.clickCount == 2;
@@ -535,6 +571,45 @@ export class InputManager {
             target.bubbleEvent(Event.AFTER_TOUCH, touch.event);
         }
         this._trackTouches.clear();
+
+        if (this._touches.length > 0 && this._touches.length !== ev.touches.length) {
+            const last = this._touches.map(t => t.touchId).join(",");
+            const curr = Array.from(ev.touches).map(t => t.identifier).join(",");
+            console.error("touch error, touch count mismatch: ", "last:", last, "current:", curr);
+            this._cancelAllTouches(ev);
+        }
+    }
+
+    private _cancelAllTouches(ev: TouchEvent | ITouchEvent) {
+        const cancelEvent: ITouchEvent = {
+            changedTouches: [],
+            touches: [],
+            timeStamp: ev.timeStamp,
+        }
+        const touches = Array.from(ev.touches);
+        for (const info of this._touches) {
+            const touch: ITouch = {
+                identifier: info.touchId,
+                pageX: info.pos.x,
+                pageY: info.pos.y,
+                clientX: info.pos.x,
+                clientY: info.pos.y,
+                force: 0,
+                radiusX: 0,
+                radiusY: 0,
+                rotationAngle: 0,
+                screenX: info.pos.x,
+                screenY: info.pos.y,
+                target: null!,
+            }
+            if (!touches.find(v => v.identifier === info.touchId)) {
+                cancelEvent.changedTouches.push(touch);
+            } else {
+                cancelEvent.touches.push(touch);
+            }
+           
+        }        
+        this.handleTouch(cancelEvent, InputType.CANCEL);
     }
 
     private getTouch(touchId: number, shouldCreate?: boolean): TouchInfo {
