@@ -564,9 +564,9 @@ export class Context {
             this.defTexture.bitmap && this.defTexture.bitmap.destroy();
             this.defTexture.destroy();
         }
-        for(var i = 0,n = this._shaderValueNeedRelease.length;i<n;i++){
-            this._shaderValueNeedRelease[i]&&this._shaderValueNeedRelease[i].release();
-        } 
+        for (var i = 0, n = this._shaderValueNeedRelease.length; i < n; i++) {
+            this._shaderValueNeedRelease[i] && this._shaderValueNeedRelease[i].release();
+        }
     }
 
     clear(): void {
@@ -934,7 +934,6 @@ export class Context {
         }
     }
 
-    /**@internal */
     _drawTextureM(tex: Texture, x: number, y: number, width: number, height: number, m: Matrix, alpha: number, uv: any[] | null, color: number): boolean {
         // 注意sprite要保存，因为后面会被冲掉
         var cs = this.sprite;
