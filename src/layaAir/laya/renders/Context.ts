@@ -934,7 +934,7 @@ export class Context {
         }
     }
 
-    _drawTextureM(tex: Texture, x: number, y: number, width: number, height: number, m: Matrix, alpha: number, uv: any[] | null, color: number): boolean {
+    _drawTextureM(tex: Texture, x: number, y: number, width: number, height: number, m: Matrix | null, alpha: number, uv: any[] | null, color: number): boolean {
         // 注意sprite要保存，因为后面会被冲掉
         var cs = this.sprite;
         if (!tex._getSource(function (): void {
@@ -948,7 +948,7 @@ export class Context {
     }
 
     /**@internal */
-    _drawRenderTexture(tex: RenderTexture2D, x: number, y: number, width: number, height: number, m: Matrix | null, alpha: number, uv: any[], color = 0xffffffff): boolean {
+    _drawRenderTexture(tex: RenderTexture2D, x: number, y: number, width: number, height: number, m: Matrix, alpha: number, uv: any[], color = 0xffffffff): boolean {
         return this._inner_drawTexture(tex, -1, x, y, width, height, m, uv, alpha, false, color);
     }
 
