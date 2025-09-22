@@ -24,7 +24,7 @@ export class CallLater {
      * @en Frame loop processing function.
      * @zh 帧循环处理。
      */
-    _update(): void {
+    _update(timestamp: number): void {
         let laters = this._laters;
         let len = laters.length;
         if (len > 0) {

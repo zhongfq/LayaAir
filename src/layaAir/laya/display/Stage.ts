@@ -926,12 +926,72 @@ export class Stage extends Sprite {
     parentRepaint(type: number = SpriteConst.REPAINT_CACHE): void {
     }
 
-    /**@internal */
-    _loop(): boolean {
+    loop(timestamp: number) {
         this._globalRepaintGet = this._globalRepaintSet;
         this._globalRepaintSet = false;
-        this.render(Render._context, 0, 0);
-        return true;
+        // this.render(Render._context, 0, 0);
+        if (this._frameRate === Stage.FRAME_SLEEP) {
+            var now: number = Browser.now();
+            if (now - this._frameStartTime < 1000)
+                return;
+            this._frameStartTime = now;
+        } else {
+            if (!this._visible) {
+                this._renderCount++;
+                if (this._renderCount % 5 === 0) {
+                    CallLater.I._update(timestamp);
+                    Stat.loopCount++;
+                    RenderInfo.loopCount = Stat.loopCount;
+                    this._runComponents();
+                    this._updateTimers(timestamp);
+                }
+                return;
+            }
+            this._frameStartTime = Browser.now();
+            RenderInfo.loopStTm = this._frameStartTime;
+        }
+
+        this._renderCount++;
+        var frameMode: string = this._frameRate === Stage.FRAME_MOUSE ? (((this._frameStartTime - this._mouseMoveTime) < 2000) ? Stage.FRAME_FAST : Stage.FRAME_SLOW) : this._frameRate;
+        var isFastMode: boolean = (frameMode !== Stage.FRAME_SLOW);
+        var isDoubleLoop: boolean = (this._renderCount % 2 === 0);
+
+        Stat.renderSlow = !isFastMode;
+        if (!isFastMode && !isDoubleLoop)//统一双帧处理渲染
+            return;
+
+        CallLater.I._update(timestamp);
+        Stat.loopCount++;
+        RenderInfo.loopCount = Stat.loopCount;
+
+        if (this.renderingEnabled) {
+
+            for (let i = 0, n = this._scene3Ds.length; i < n; i++)//更新3D场景,必须提出来,否则在脚本中移除节点会导致BUG
+                (<any>this._scene3Ds[i])._update();
+            this._runComponents();
+            this._componentDriver.callPreRender();
+
+            //仅仅是clear
+            Render._context.render2D.renderStart(!Config.preserveDrawingBuffer, this._wgColor);
+            //context2D.render2D.renderEnd();
+
+            //Stage.clear(this._bgColor);
+            //先渲染3d
+            for (let i = 0, n = this._scene3Ds.length; i < n; i++)//更新3D场景,必须提出来,否则在脚本中移除节点会导致BUG
+                (<any>this._scene3Ds[i]).renderSubmit();
+            //再渲染2d
+            this.render(Render._context, 0, 0);
+
+            this._componentDriver.callPostRender();
+
+            VectorGraphManager.instance && VectorGraphManager.getInstance().endDispose();
+        }
+        else
+            this._runComponents();
+
+        this._updateTimers(timestamp);
+
+        LayaGL.renderEngine.endFrame();
     }
 
     /**
@@ -991,68 +1051,7 @@ export class Stage extends Sprite {
      * @param y 纵轴坐标
      */
     render(context2D: Context, x: number, y: number): void {
-        if (this._frameRate === Stage.FRAME_SLEEP) {
-            var now: number = Browser.now();
-            if (now - this._frameStartTime < 1000)
-                return;
-            this._frameStartTime = now;
-        } else {
-            if (!this._visible) {
-                this._renderCount++;
-                if (this._renderCount % 5 === 0) {
-                    CallLater.I._update();
-                    Stat.loopCount++;
-                    RenderInfo.loopCount = Stat.loopCount;
-                    this._runComponents();
-                    this._updateTimers();
-                }
-                return;
-            }
-            this._frameStartTime = Browser.now();
-            RenderInfo.loopStTm = this._frameStartTime;
-        }
-
-        this._renderCount++;
-        var frameMode: string = this._frameRate === Stage.FRAME_MOUSE ? (((this._frameStartTime - this._mouseMoveTime) < 2000) ? Stage.FRAME_FAST : Stage.FRAME_SLOW) : this._frameRate;
-        var isFastMode: boolean = (frameMode !== Stage.FRAME_SLOW);
-        var isDoubleLoop: boolean = (this._renderCount % 2 === 0);
-
-        Stat.renderSlow = !isFastMode;
-        if (!isFastMode && !isDoubleLoop)//统一双帧处理渲染
-            return;
-
-        CallLater.I._update();
-        Stat.loopCount++;
-        RenderInfo.loopCount = Stat.loopCount;
-
-        if (this.renderingEnabled) {
-
-            for (let i = 0, n = this._scene3Ds.length; i < n; i++)//更新3D场景,必须提出来,否则在脚本中移除节点会导致BUG
-                (<any>this._scene3Ds[i])._update();
-            this._runComponents();
-            this._componentDriver.callPreRender();
-
-            //仅仅是clear
-            context2D.render2D.renderStart(!Config.preserveDrawingBuffer, this._wgColor);
-            //context2D.render2D.renderEnd();
-
-            //Stage.clear(this._bgColor);
-            //先渲染3d
-            for (let i = 0, n = this._scene3Ds.length; i < n; i++)//更新3D场景,必须提出来,否则在脚本中移除节点会导致BUG
-                (<any>this._scene3Ds[i]).renderSubmit();
-            //再渲染2d
-            this._render2d(context2D, x, y);
-
-            this._componentDriver.callPostRender();
-
-            VectorGraphManager.instance && VectorGraphManager.getInstance().endDispose();
-        }
-        else
-            this._runComponents();
-
-        this._updateTimers();
-
-        LayaGL.renderEngine.endFrame();
+        this._render2d(context2D, x, y);
     }
 
     /**
@@ -1076,10 +1075,10 @@ export class Stage extends Sprite {
         this._componentDriver.callDestroy();
     }
 
-    private _updateTimers(): void {
-        ILaya.systemTimer._update();
-        ILaya.physicsTimer._update();
-        ILaya.timer._update();
+    private _updateTimers(timestamp: number): void {
+        ILaya.systemTimer._update(timestamp);
+        ILaya.physicsTimer._update(timestamp);
+        ILaya.timer._update(timestamp);
     }
 
     /**

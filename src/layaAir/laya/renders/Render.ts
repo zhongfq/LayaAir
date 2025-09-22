@@ -17,6 +17,17 @@ import { Context } from "./Context";
  * <code>Render</code> 是渲染管理类。它是一个单例，可以使用 Laya.render 访问。
  */
 export class Render {
+    /**
+     * @en The interval time of each frame in milliseconds.
+     * @zh 每帧的间隔时间，单位为毫秒。
+     */
+    static frameInterval = 1000 / 60;
+    /**
+     * @en The frame number of the last run.
+     * @zh 最近一次运行的帧号。
+     */
+    static lastFrame = 0;
+
     /** @internal */
     static _context: Context;
     /** @internal 主画布。canvas和webgl渲染都用这个画布*/
@@ -27,16 +38,6 @@ export class Render {
     static _customRequestAnimationFrame: any;
     /**帧循环函数 */
     static _loopFunction: any;
-
-    /** 当前的帧数 */
-    private static lastFrm = 0;
-    /** 第一次运行标记 */
-    private _first = true;
-    /** 刚启动的时间。由于微信的rAF不标准，传入的stamp参数不对，因此自己计算一个从启动开始的相对时间 */
-    private _startTm = 0;
-
-    /** @internal */
-    private static ifps = 1000 / 60;
 
     static _Render: Render;
 
@@ -91,33 +92,34 @@ export class Render {
         } else {
             requestAnimationFrame(loop);
         }
-        let me = this;
-        let lastFrmTm = performance.now();
-        let fps = Config.FPS;
-        let ifps = Render.ifps = 1000 / fps; //如果VR的话，需要改这个
-        function loop(stamp: number) {
-            //let perf = PerfHUD.inst;
-            let sttm = performance.now();
-            //perf && perf.updateValue(0, sttm-lastFrmTm);
-            lastFrmTm = sttm;
-            if (me._first) {
-                // 把starttm转成帧对齐
-                me._startTm = Math.floor(stamp / ifps) * ifps;
-                me._first = false;
+        
+        let first = true;
+        let startTm = 0;
+        let leftTime = 0;
+        let lastTime = 0;
+
+        Render.frameInterval = 1000 / Config.FPS;
+
+        function loop(timestamp: number) {
+            timestamp = timestamp ?? performance.now();
+
+            const interval = Render.frameInterval;
+
+            if (first) {
+                first = false;
+                startTm = Math.floor(timestamp / interval) * interval;
+                leftTime = 0;
+                lastTime = timestamp;
             }
-            // 与第一帧开始时间的delta
-            stamp -= me._startTm;
-            // 计算当前帧数
-            let frm = Math.floor(stamp / ifps);    // 不能|0 在微信下会变成负的
-            // 是否已经跨帧了
-            let dfrm = frm - Render.lastFrm;
-            //去掉了 LayaEnv.isConch 。不知道会不会有问题
-            if (dfrm > 0 || !Config.fixedFrames) {
-                //不限制
-                Render.lastFrm = frm;
-                ILaya.stage._loop();
+
+            let delta = leftTime + timestamp - lastTime;
+            if (delta + 1 >= interval || !Config.fixedFrames) {
+                leftTime = Math.min(delta - interval, interval);
+                lastTime = timestamp;
+
+                Render.lastFrame = Math.floor((timestamp - startTm) / interval);
+                ILaya.stage.loop(timestamp);
             }
-            //perf && perf.updateValue(1, performance.now()-sttm);
 
             if (!!Render._customRequestAnimationFrame && !!Render._loopFunction) {
                 Render._customRequestAnimationFrame(Render._loopFunction);
@@ -149,15 +151,6 @@ export class Render {
         }
     }
 
-    /**
-     * 获取帧对齐的时间。
-     * 用这个做动画的时间参数会更平滑。
-     * 从render构造开始算起。
-     * @returns 
-     */
-    static vsyncTime() {
-        return Render.lastFrm * Render.ifps;
-    }
 
     initRender(canvas: HTMLCanvas, w: number, h: number): boolean {
 
@@ -181,10 +174,17 @@ export class Render {
         return true;
     }
 
+     /**
+     * @ignore
+     */
+     static vsyncTime() {
+        return Render.lastFrame * Render.frameInterval;
+    }
+
 
     /**@private */
     private _enterFrame(e: any = null): void {
-        ILaya.stage._loop();
+        ILaya.stage.loop(performance.now());
     }
 
     /** 目前使用的渲染器。*/

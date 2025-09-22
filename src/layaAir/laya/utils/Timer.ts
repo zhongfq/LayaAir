@@ -53,8 +53,8 @@ export class Timer {
      */
     constructor(autoActive: boolean = true) {
         autoActive && Timer.gSysTimer && Timer.gSysTimer.frameLoop(1, this, this._update);
-        this.currTimer = this._getNowData();
-        this._lastTimer = this._getNowData();
+        this.currTimer = performance.now();
+        this._lastTimer = performance.now();
     }
 
     /**
@@ -71,18 +71,18 @@ export class Timer {
      * @en The frame update handling function.
      * @zh 帧循环处理函数。
      */
-    _update(): void {
+    _update(timestamp: number): void {
+        timestamp = timestamp ?? performance.now();
         if (this.scale <= 0) {
-            this._lastTimer = this._getNowData();
+            this._lastTimer = performance.now();
             this._delta = 0;
             return;
         }
         var frame: number = this.currFrame = this.currFrame + this.scale;
-        var now: number = this._getNowData();
-        var awake: boolean = (now - this._lastTimer) > 30000;
-        this._delta = (now - this._lastTimer) * this.scale;
+        var awake: boolean = (timestamp - this._lastTimer) > 30000;
+        this._delta = (timestamp - this._lastTimer) * this.scale;
         var timer: number = this.currTimer = this.currTimer + this._delta;
-        this._lastTimer = now;
+        this._lastTimer = timestamp;
 
         //处理handler
         var handlers: any[] = this._handlers;
@@ -138,17 +138,6 @@ export class Timer {
         Timer._pool.push(handler);
     }
 
-    /**
-     * @private
-     * @en get now time data.
-     * @returns reutrn time data.
-     * @zh 立即获取时间数据
-     * @returns 返回时间数据
-     */
-    public _getNowData(): number {
-        return Date.now();
-    }
-
     /** @internal */
     _create(useFrame: boolean, repeat: boolean, delay: number, caller: any, method: Function, args: any[], coverBefore: boolean): TimerHandler {
         //如果延迟为0，则立即执行
@@ -167,7 +156,7 @@ export class Timer {
                 handler.caller = caller;
                 handler.method = method;
                 handler.args = args;
-                handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + this._getNowData() - this._lastTimer);
+                handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + performance.now() - this._lastTimer);
                 return handler;
             }
         }
@@ -180,7 +169,7 @@ export class Timer {
         handler.caller = caller;
         handler.method = method;
         handler.args = args;
-        handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + this._getNowData() - this._lastTimer);
+        handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + performance.now() - this._lastTimer);
 
         //索引handler
         this._indexHandler(handler);
