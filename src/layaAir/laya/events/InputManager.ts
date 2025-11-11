@@ -739,11 +739,11 @@ export class InputManager {
             if (!sp._getBit(NodeFlags.LOCK_BY_EDITOR)
                 && !sp.hasHideFlag(HideFlags.HideInHierarchy)
                 && this.hitTest(sp, x, y, editing))
-                return sp;
+                return sp.getHitTarget();
         }
         else if (sp != this._stage) {
             if (sp.hitTestPrior && !sp.mouseThrough || this.hitTest(sp, x, y))
-                return sp;
+                return sp.getHitTarget();
         }
 
         return null;

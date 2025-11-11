@@ -2122,6 +2122,10 @@ export class Sprite extends Node {
         this.getStyle().hitArea = value;
     }
 
+    getHitTarget(): Sprite {
+        return this;
+    }
+
     /**@internal */
     _setMask(value: Sprite): void {
 
