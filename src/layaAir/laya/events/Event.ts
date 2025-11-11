@@ -559,6 +559,21 @@ export class Event {
     get stageY(): number {
         return this.touchPos.y;
     }
+
+    clone(): Event {
+        const event = new Event();
+        event.type = this.type;
+        event.currentTarget = this.currentTarget;
+        event.target = this.target;
+        event.touchId = this.touchId;
+        event.touchPos.setTo(this.touchPos.x, this.touchPos.y);
+        event.isDblClick = this.isDblClick;
+        event.button = this.button;
+        event.delta = this.delta;
+        event.nativeEvent = this.nativeEvent;
+        event._touches = this._touches;
+        return event;
+    }
 }
 
 const MOUSE_EVENTS = new Set<string>([
