@@ -576,10 +576,6 @@ export class Texture extends Resource {
         if (bit)
             bit._removeReference(this._referenceCount);
 
-        let atlas = this._atlas;
-        this._atlas = null;
-        if (atlas)
-            atlas._removeReference(this._referenceCount);
     }
 
     /**
@@ -604,7 +600,7 @@ export class Texture extends Resource {
             this._clipCache = new Map();
 
         let tex = this._clipCache.get(key);
-        
+
         if (tex && !tex.destroyed)
             return tex;
         tex = Texture.createFromTexture(this, x, y, width, height);
