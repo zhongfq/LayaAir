@@ -141,9 +141,9 @@ export class Laya {
         Browser.supportWebAudio = SoundManager.__init__();
         Browser.supportLocalStorage = LocalStorage.__init__();
 
-        systemTimer = new Timer(false);
-        physicsTimer = new Timer(false);
-        timer = new Timer(false);
+        systemTimer = new Timer();
+        physicsTimer = new Timer();
+        timer = new Timer();
         loader = new Loader();
 
         Laya.systemTimer = Timer.gSysTimer = systemTimer;

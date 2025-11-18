@@ -43,18 +43,15 @@ export class Timer {
     /**@private */
     private _handlers: any[] = [];
     /**@private */
-    private _temp: any[] = [];
-    /**@private */
     private _count: number = 0;
 
     /**
      * @en Constructor method
      * @zh 构造方法
      */
-    constructor(autoActive: boolean = true) {
-        autoActive && Timer.gSysTimer && Timer.gSysTimer.frameLoop(1, this, this._update);
-        this.currTimer = performance.now();
-        this._lastTimer = performance.now();
+    constructor() {
+        this.currTimer = 0;
+        this._lastTimer = 0;
     }
 
     /**
@@ -72,9 +69,12 @@ export class Timer {
      * @zh 帧循环处理函数。
      */
     _update(timestamp: number): void {
-        timestamp = timestamp ?? performance.now();
+        if (this.currTimer <= 0) {
+            this.currTimer = timestamp;
+            this._lastTimer = timestamp;
+        }
         if (this.scale <= 0) {
-            this._lastTimer = performance.now();
+            this._lastTimer = timestamp;
             this._delta = 0;
             return;
         }
@@ -121,14 +121,21 @@ export class Timer {
     /** @private */
     private _clearHandlers(): void {
         var handlers: any[] = this._handlers;
-        for (var i: number = 0, n: number = handlers.length; i < n; i++) {
-            var handler: TimerHandler = handlers[i];
-            if (handler.method !== null) this._temp.push(handler);
-            else this._recoverHandler(handler);
+        let replaceIndex = handlers.length - 1;
+        if (replaceIndex <= 0) {
+            return;
         }
-        this._handlers = this._temp;
-        handlers.length = 0;
-        this._temp = handlers;
+        for (let i = 0; i <= replaceIndex;) {
+            const handler = handlers[i];
+            if (handler.method !== null) {
+                i++;
+            } else {
+                this._recoverHandler(handler);
+                handlers[i] = handlers[replaceIndex];
+                replaceIndex--;
+            }
+        }
+        handlers.length = replaceIndex + 1;
     }
 
     /** @private */
@@ -156,7 +163,7 @@ export class Timer {
                 handler.caller = caller;
                 handler.method = method;
                 handler.args = args;
-                handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + performance.now() - this._lastTimer);
+                handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer);
                 return handler;
             }
         }
@@ -169,7 +176,7 @@ export class Timer {
         handler.caller = caller;
         handler.method = method;
         handler.args = args;
-        handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer + performance.now() - this._lastTimer);
+        handler.exeTime = delay + (useFrame ? this.currFrame : this.currTimer);
 
         //索引handler
         this._indexHandler(handler);
@@ -393,7 +400,6 @@ export class Timer {
         }
         this._handlers.length = 0;
         this._map = {};
-        this._temp.length = 0;
     }
 }
 

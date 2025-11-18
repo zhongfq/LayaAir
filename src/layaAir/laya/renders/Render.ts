@@ -67,6 +67,9 @@ export class Render {
         }
     }
 
+    private _timestamp: number = 0;
+    private _systemTimestamp: number = 0;
+
 
     /**
      * 初始化引擎。
@@ -100,8 +103,13 @@ export class Render {
 
         Render.frameInterval = 1000 / Config.FPS;
 
+        const self = this;
+
         function loop(timestamp: number) {
             timestamp = timestamp ?? performance.now();
+
+            self._timestamp = timestamp;
+            self._systemTimestamp = performance.now();
 
             const interval = Render.frameInterval;
 
@@ -145,7 +153,9 @@ export class Render {
      */
     private _onVisibilitychange(): void {
         if (!ILaya.stage.isVisibility) {
-            this._timeId = window.setInterval(this._enterFrame, 1000);
+            this._timeId = window.setInterval(() => {
+                this._enterFrame(this._timestamp + performance.now() - this._systemTimestamp);
+            }, 1000);
         } else if (this._timeId != 0) {
             window.clearInterval(this._timeId);
         }
@@ -183,8 +193,8 @@ export class Render {
 
 
     /**@private */
-    private _enterFrame(e: any = null): void {
-        ILaya.stage.loop(performance.now());
+    private _enterFrame(timestamp: number): void {
+        ILaya.stage.loop(timestamp);
     }
 
     /** 目前使用的渲染器。*/
