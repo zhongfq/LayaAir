@@ -194,6 +194,11 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
 
     /**@internal */
     _currentTime: number = 0;
+
+    get currentTime(): number {
+        return this._currentTime;
+    }
+
     /**@internal */
     _startUpdateLoopCount: number = 0;
     /**@internal */
@@ -2457,6 +2462,10 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
      */
     pause(): void {
         this._isPaused = true;
+    }
+
+    resume(): void {
+        this._isPaused = false;
     }
 
     /**
