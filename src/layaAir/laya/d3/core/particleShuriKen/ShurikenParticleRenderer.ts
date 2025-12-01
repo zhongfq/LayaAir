@@ -200,7 +200,12 @@ export class ShurikenParticleRenderer extends BaseRender {
     protected _onDisable(): void {
         super._onDisable();
         Stat.particleRenderNode--;
-        (this._particleSystem.isAlive) && (this._particleSystem.simulate(0, true));
+
+        if (this._particleSystem.isAlive) {
+            this._particleSystem.simulate(0, true)
+        } else {
+            this._particleSystem.reset();
+        }
     }
 
     /**

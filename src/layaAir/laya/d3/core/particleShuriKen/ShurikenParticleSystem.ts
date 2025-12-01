@@ -109,13 +109,13 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
     protected _simulateUpdate: boolean = false;
 
     /**@internal */
-    protected _firstActiveElement: number = 0;
+    protected _firstActiveElement: number = 0; //第一个生效的粒子索引?  每当有粒子过期了，会刷新
     /**@internal */
-    protected _firstNewElement: number = 0;
+    protected _firstNewElement: number = 0; //第一个新添加的粒子索引? 只有跑到渲染的时候，才会刷新，会被赋值为_firstFreeElement
     /**@internal */
-    protected _firstFreeElement: number = 0;
+    protected _firstFreeElement: number = 0;//第一个空闲的粒子索引? 添加一个粒子的时候,会刷新
     /**@internal */
-    protected _firstRetiredElement: number = 0;
+    protected _firstRetiredElement: number = 0; //第一个回收的粒子索引? 每当有粒子被释放的时候，会刷新
     /**@internal */
     protected _drawCounter: number = 0;
     /**@internal 最大粒子数量*/
@@ -1728,6 +1728,10 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
         }
     }
 
+    reset() {
+        this._currentTime = 0;
+    }
+
 
     /**
      * @internal
@@ -2484,7 +2488,15 @@ export class ShurikenParticleSystem extends GeometryElement implements IClone {
         }
         else {
             this._isPaused = false;//如果当前状态为暂停则无法发射粒子
-            this._updateParticles(time);
+
+            // dming：与_updateEmission中的逻辑保持一致，采用分段时间更新
+            let elapsedTime = time * this.simulationSpeed * this.timeScale;
+            const MAX = 1 / 15;// Math.max(1 / 30, Math.min(ShurikenParticleSystem._maxElapsedTime, this.duration));
+            while (elapsedTime > MAX) {
+                elapsedTime -= MAX;
+                this._updateParticles(MAX);
+            }
+            this._updateParticles(elapsedTime);
         }
 
         this.pause();
