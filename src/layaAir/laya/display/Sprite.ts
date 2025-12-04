@@ -1527,6 +1527,9 @@ export class Sprite extends Node {
      * 所以可以认为这个x、y是表示当前节点到某个有旋转的节点（或者根节点）的累加值。
      */
     render(ctx: Context, x: number, y: number): void {
+        if (this.alpha <= 0.01) {
+            return;
+        }
         RenderSprite.renders[this._renderType]._fun(this, ctx, x + this._x, y + this._y);
         this._repaint = 0;
     }
