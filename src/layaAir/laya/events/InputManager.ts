@@ -270,25 +270,30 @@ export class InputManager {
             inst.handleMouse(ev, InputType.WHEEL);
         }, { passive: false });
 
-        if (Browser.window.wx?.onWheel) {
-            interface OnWheelCallbackResult {
-                deltaX: number;
-                deltaY: number;
-                deltaZ: number;
-                x: number;
-                y: number;
-                timeStamp: number;
-            }            
-            Browser.window.wx.onWheel((result:OnWheelCallbackResult) => {
-                const ev:IWheelEvent =  {
-                    deltaX: result.deltaX,
-                    deltaY: result.deltaY,
-                    deltaZ: result.deltaZ,
-                    clientX: result.x,
-                    clientY: result.y,
-                };
-                inst.handleMouse(ev, InputType.WHEEL);
-            });
+        interface OnWheelCallbackResult {
+            deltaX: number;
+            deltaY: number;
+            deltaZ: number;
+            x: number;
+            y: number;
+            timeStamp: number;
+        }
+        const onWheel = Browser.window.tt?.onWheel || Browser.window.wx?.onWheel;
+        if (onWheel) {
+            try {
+                onWheel((result:OnWheelCallbackResult) => {
+                    const ev:IWheelEvent =  {
+                        deltaX: result.deltaX,
+                        deltaY: result.deltaY,
+                        deltaZ: result.deltaZ,
+                        clientX: result.x,
+                        clientY: result.y,
+                    };
+                    inst.handleMouse(ev, InputType.WHEEL);
+                });
+            } catch (error) {
+                console.error(error);
+            }
         }
 
         canvas.addEventListener("pointerdown", ev => {
