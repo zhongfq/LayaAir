@@ -362,14 +362,17 @@ export class Animator extends Component {
                 const now = Laya.timer.currTimer;
                 if (this._nextTransitionCheckTime < now) {
                     shouldApplyTransition = true;
-                    this._nextTransitionCheckTime = now + this.transitionInterval;
+                    // 修复：如果动画片段的持续时间小于过渡监测间隔，则使用动画片段的持续时间
+                    const interval = Math.min(animatorState.clip?.duration() ?? this.transitionInterval, this.transitionInterval)
+                    this._nextTransitionCheckTime = now + interval;
                 }
             }
             else {
                 shouldApplyTransition = true;
             }
             if (shouldApplyTransition) {
-                this._applyTransition(animatorState, layerIndex, animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams));
+                const transition = animatorState._eventtransition(playState._normalizedPlayTime, this.animatorParams);
+                this._applyTransition(animatorState, layerIndex, transition);
             }
         }
     }
