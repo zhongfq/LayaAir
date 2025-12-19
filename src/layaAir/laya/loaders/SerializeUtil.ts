@@ -2,6 +2,7 @@ import { ILaya } from "../../ILaya";
 import { Node } from "../display/Node";
 import { Loader } from "../net/Loader";
 import { URL } from "../net/URL";
+import { Resource } from "../resource/Resource";
 import { ClassUtils } from "../utils/ClassUtils";
 
 export const TypedArrayClasses: Record<string, any> = {
@@ -19,11 +20,13 @@ export interface IDecodeObjOptions {
     outErrors?: Array<string>;
     getNodeByRef?: (id: string | string[]) => Node;
     getNodeData?: (node: Node) => any;
+    getRes?: (url: string, type?: string) => Resource;
 }
 
 var _errors: Array<string>;
 var _getNodeByRef: (id: string | string[]) => Node;
 var _getNodeData: (node: Node) => any;
+var _getRes: (url: string, type?: string) => Resource;
 
 export class SerializeUtil {
     public static isDeserializing = false;
@@ -33,11 +36,13 @@ export class SerializeUtil {
             _errors = options.outErrors;
             _getNodeByRef = options.getNodeByRef;
             _getNodeData = options.getNodeData;
+            _getRes = options.getRes;
         }
         else {
             _errors = null;
             _getNodeByRef = null;
             _getNodeData = null;
+            _getRes = null;
         }
 
         SerializeUtil.isDeserializing = true;
@@ -73,7 +78,10 @@ export class SerializeUtil {
         else if (typeof (data) === "object") {
             if (data._$uuid != null) {
                 let url = URL.getResURLByUUID(data._$uuid);
-                return ILaya.loader.getRes(url, SerializeUtil.getLoadTypeByEngineType(data._$type));
+                if (_getRes)
+                    return _getRes(url, SerializeUtil.getLoadTypeByEngineType(data._$type));
+                else
+                    return ILaya.loader.getRes(url, SerializeUtil.getLoadTypeByEngineType(data._$type));
             }
 
             if (data._$ref != null) {

@@ -82,6 +82,8 @@ export class PrefabImpl extends Prefab {
     /** @internal Debug only */
     nodes: CreatedNode = new CreatedNode();
 
+    private _resources: Map<string, Resource> = new Map();
+
     /**
      * @en Create an instance of the PrefabImpl class.
      * @param api The hierarchy parser API.
@@ -169,6 +171,19 @@ export class PrefabImpl extends Prefab {
             }
         }
         return undefined;
+    }
+
+    addRes(url: ILoadURL | string, res: Resource) {
+        const key = typeof url === 'string' ? `${url}@` : `${url.url}@${url.type || ''}`;
+        this._resources.set(key, res);
+    }
+
+    getRes(url:string, type?:string): Resource {
+        const key = `${url}@${type || ''}`;
+        if (this._resources.has(key)) {
+            return this._resources.get(key);
+        }
+        throw new Error(`Resource not found: ${url} ${type || ''}`);
     }
 }
 

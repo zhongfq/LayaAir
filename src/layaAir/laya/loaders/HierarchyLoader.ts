@@ -43,17 +43,18 @@ export class HierarchyLoader implements IResourceLoader {
         delete options.cache;
         delete options.ignoreCache;
         return task.loader.load(links, options, task.progress.createCallback()).then((resArray: any[]) => {
+            let prefab = new PrefabImpl(api, data, version);
             for (let i = 0; i < links.length; i++) {
                 const res = resArray[i];
                 if (!res || res instanceof Resource && res.destroyed) {
                     const url = typeof links[i] === 'string' ? links[i] : (links[i] as ILoadURL).url;
                     throw new Error(`HierarchyLoader: resource has been destroyed or null, url: ${url} ${res}`);
                 }
+                prefab.addRes(links[i], res);
             }
-            let res = new PrefabImpl(api, data, version);
-            res.fromDCC = fromDCC;
-            res.addDeps(resArray);
-            return res;
+            prefab.fromDCC = fromDCC;
+            prefab.addDeps(resArray);
+            return prefab;
         });
     }
 }

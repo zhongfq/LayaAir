@@ -6,6 +6,7 @@ import { Sprite } from "../display/Sprite";
 import { Loader, ILoadURL } from "../net/Loader";
 import { URL } from "../net/URL";
 import { Prefab } from "../resource/HierarchyResource";
+import { type PrefabImpl } from "../resource/PrefabImpl";
 import { ClassUtils } from "../utils/ClassUtils";
 import { Utils } from "../utils/Utils";
 import { IDecodeObjOptions, SerializeUtil } from "./SerializeUtil";
@@ -25,7 +26,7 @@ export class HierarchyParser {
         let skinBaseUrl: string;
         let overrideData: Array<Array<any>>;
         let shouldCreateComponent: (nodeData: any, compData: any) => boolean;
-        let prefab: any;
+        let prefab: PrefabImpl | null = null;
 
         if (options) {
             inPrefab = options.inPrefab;
@@ -173,6 +174,13 @@ export class HierarchyParser {
             }
             else
                 return map[idPath];
+        }
+
+        function getRes(url: string, type?: string) {
+            if (prefab)
+                return prefab.getRes(url, type);
+            else
+                return Loader.getRes(url, type);
         }
 
         let bakedOverrideData: Record<string, Array<any>>;
@@ -323,7 +331,7 @@ export class HierarchyParser {
         }
 
         //设置节点属性
-        const decodeOptions: IDecodeObjOptions = { outErrors: errors, getNodeByRef, getNodeData };
+        const decodeOptions: IDecodeObjOptions = { outErrors: errors, getNodeByRef, getNodeData, getRes };
         for (let i = 0; i < cnt; i++) {
             let nodeData = dataList[i];
             let node = allNodes[i];
