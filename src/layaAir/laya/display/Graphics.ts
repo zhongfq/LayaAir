@@ -42,6 +42,7 @@ import { ShaderData, ShaderDataType } from "../RenderDriver/DriverDesign/RenderD
 import { DrawGeoCmd } from "./cmd/DrawGeoCmd";
 import { IRenderGeometryElement } from "../RenderDriver/DriverDesign/RenderDevice/IRenderGeometryElement";
 import { DrawGeosCmd } from "./cmd/DrawGeosCmd";
+import { DrawImageFontCmd } from "./cmd/DrawImageFontCmd";
 
 /**
  * @en The Graphics class is used to create drawing display objects. Graphics can draw multiple bitmaps or vector graphics simultaneously, and can also combine instructions such as save, restore, transform, scale, rotate, translate, alpha, etc. to change the drawing effect.
@@ -307,6 +308,12 @@ export class Graphics {
         if (!texture) return null;
         if (!texture.bitmap) return null;
         return this.addCmd(DrawImageCmd.create(texture, x, y, width, height, color));
+    }
+
+    drawImageFont(texture: Texture, uv: ArrayLike<number>, x: number = 0, y: number = 0, width: number = null, height: number = null, color: string = null): DrawImageFontCmd | null {
+        if (!texture) return null;
+        if (!texture.bitmap) return null;
+        return this.addCmd(DrawImageFontCmd.create(texture, x, y, width, height, color, uv));
     }
 
     /**

@@ -1837,7 +1837,7 @@ export class Text extends Sprite {
                             let g = bfont.dict[c];
                             if (g) {
                                 if (g.texture)
-                                    graphics.drawImage(g.texture, x + cmd.x + tx + g.x * scale, y + cmd.y + g.y * scale, g.width * scale, g.height * scale, color);
+                                    graphics.drawImageFont(g.texture, g.uv, x + cmd.x + tx + g.x * scale, y + cmd.y + g.y * scale, g.width * scale, g.height * scale, color);
                                 tx += Math.round(g.advance * scale);
                             }
                         }

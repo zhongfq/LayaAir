@@ -947,6 +947,20 @@ export class Context {
         return this._inner_drawTexture(tex, (tex.bitmap as Texture2D).id, x, y, width, height, m, uv, alpha, false, color);
     }
 
+    _drawTextureFont(tex: Texture, x: number, y: number, width: number, height: number, m: Matrix | null, alpha: number, uv: number[] | null, color: number): boolean {
+        // 注意sprite要保存，因为后面会被冲掉
+        var cs = this.sprite;
+        if (!tex._getSource(function (): void {
+            if (cs) {
+                cs.repaint();	// 原来是calllater，callater对于cacheas normal是没有机会执行的
+            }
+        })) { //source内调用tex.active();
+            return false;
+        }
+        const isLastRender = this._charSubmitCache ? this._charSubmitCache._enable : false;
+        return this._inner_drawTexture(tex, (tex.bitmap as Texture2D).id, x, y, width, height, m, uv, alpha, isLastRender, color);
+    }
+
     /**@internal */
     _drawRenderTexture(tex: RenderTexture2D, x: number, y: number, width: number, height: number, m: Matrix, alpha: number, uv: any[], color = 0xffffffff): boolean {
         return this._inner_drawTexture(tex, -1, x, y, width, height, m, uv, alpha, false, color);

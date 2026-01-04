@@ -127,8 +127,8 @@ export class BitmapFont extends Resource {
                 advance = width;
             advance += this.letterSpacing;
             maxWidth = Math.max(maxWidth, advance);
-
-            dict[id] = { x: 0, y: 0, width, height, advance, texture: tex };
+            const uv = new Float32Array(tex.uv);
+            dict[id] = { x: 0, y: 0, width, height, advance, texture: texture, uv };
         }
 
         if (maxWidth > 0)
@@ -213,4 +213,5 @@ export interface BMGlyph {
     height?: number;
     advance?: number;
     texture?: Texture;
+    uv?: ArrayLike<number>;
 }
