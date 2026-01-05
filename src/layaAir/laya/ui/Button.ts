@@ -443,7 +443,7 @@ export class Button extends UIComponent implements ISelect {
     protected createText(): void {
         if (!this._text) {
             this._text = new Text();
-            this._text.overflow = Text.HIDDEN;
+            this._text.overflow = Text.VISIBLE;
             this._text.align = "center";
             this._text.valign = "middle";
             this._text.width = this._width;
