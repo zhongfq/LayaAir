@@ -1095,6 +1095,11 @@ export class Loader extends EventDispatcher {
     static _cacheRes(url: string, data: any, typeId: number, main: boolean) {
         let entry: Array<any> = Loader.loadedMap[url];
         if (main) {
+            if (data == null) {
+                delete Loader.loadedMap[url];
+                return;
+            }
+
             if (entry) {
                 entry[0] = typeId;
                 entry[1] = data;
