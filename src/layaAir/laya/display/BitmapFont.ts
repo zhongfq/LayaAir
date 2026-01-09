@@ -147,9 +147,10 @@ export class BitmapFont extends Resource {
 
     protected _disposeResource(): void {
         if (this.texture) {
-            for (let k in this.dict) {
-                this.dict[k].texture?.destroy();
-            }
+            // 这里不能销毁纹理，因为字体引用的纹理，就是bitmapFont的纹理本身
+            // for (let k in this.dict) {
+            //     this.dict[k].texture?.destroy();
+            // }
             this.texture._removeReference();
             this.dict = null;
             this.texture = null;
