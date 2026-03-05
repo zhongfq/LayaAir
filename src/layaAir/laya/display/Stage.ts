@@ -24,6 +24,7 @@ import { LayaEnv } from "../../LayaEnv";
 import { Scene3D } from "../d3/core/scene/Scene3D";
 import { Color } from "../maths/Color";
 import { LayaGL } from "../layagl/LayaGL";
+import { RenderPassStatisticsInfo } from "../RenderEngine/RenderEnum/RenderStatInfo";
 
 /**
  * @zh Stage 是舞台类，显示列表的根节点，所有显示对象都在舞台上显示。通过 Laya.stage 单例访问。
@@ -1061,11 +1062,13 @@ export class Stage extends Sprite {
      * @perfTag PerformanceDefine.T_UIRender
     */
     private _render2d(context2D: Context, x: number, y: number) {
+        const time = performance.now();
         Stat.draw2D = 0;
         context2D.startRender();
         super.render(context2D, x, y);
         Stat.render(context2D, x, y);
         context2D.endRender();
+        Stat.renderPassStatArray[RenderPassStatisticsInfo.T_2DRender] += (performance.now() - time);//Stat
     }
 
     private _runComponents() {

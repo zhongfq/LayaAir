@@ -39,7 +39,7 @@ export enum GPUEngineStatisticsInfo {
     RC_Texture2DArray,
     M_ALLRenderTexture,
     RC_ALLRenderTexture,
-    Count
+    Count,
 }
 
 
@@ -61,5 +61,6 @@ export enum RenderPassStatisticsInfo {
     T_OnlyShurikenParticleRender,
     T_CameraMainCull,
     T_ShadowMapCull,
-    RenderPassStatisticCount
+    RenderPassStatisticCount,
+    T_2DRender
 }

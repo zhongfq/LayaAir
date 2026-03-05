@@ -1,5 +1,5 @@
 import { ILaya } from "../../ILaya";
-import { GPUEngineStatisticsInfo } from "../RenderEngine/RenderEnum/RenderStatInfo";
+import { GPUEngineStatisticsInfo,RenderPassStatisticsInfo } from "../RenderEngine/RenderEnum/RenderStatInfo";
 import { LayaGL } from "../layagl/LayaGL";
 import { Browser } from "./Browser";
 import { ClassUtils } from "./ClassUtils";
@@ -133,12 +133,41 @@ export class Stat {
      * @zh Uniform上传数量
      */
     public static uploadUniformNum: StatUIParams = { title: "UploadUniformNum", value: "uploadUniform", color: "white", units: "int", mode: "average" };
+
+    
+    public static T_2DRenderNum: StatUIParams = { title: "T_2DRender", value: "T_2DRender", color: "white", units: "int", mode: "average" };
+    public static T_CameraRenderNum: StatUIParams = { title: "T_CameraRender", value: "T_CameraRender", color: "white", units: "int", mode: "average" };
+
+
     /**
      * @en All Show
      * @zh 所有显示
      */
-    public static AllShow: Array<StatUIParams> = [Stat.FPSStatUIParams, Stat.NodeStatUIParams, Stat.Sprite3DStatUIParams, Stat.DrawCall, Stat.TriangleFace, Stat.RenderNode, Stat.SkinRenderNode, Stat.ParticleRenderNode
-        , Stat.FrustumCulling, Stat.OpaqueDrawCall, Stat.TransDrawCall, Stat.ShadowDrawCall, Stat.DepthCastDrawCall, Stat.InstanceDrawCall, Stat.CMDDrawCall, Stat.BlitDrawCall, Stat.GPUMemory, Stat.TextureMemeory, Stat.RenderTextureMemory, Stat.BufferMemory, Stat.uploadUniformNum];
+    public static AllShow: Array<StatUIParams> = [
+        Stat.FPSStatUIParams,
+        Stat.NodeStatUIParams, 
+        Stat.Sprite3DStatUIParams,
+        Stat.DrawCall, 
+        Stat.TriangleFace,
+        Stat.RenderNode,
+        Stat.SkinRenderNode,
+        Stat.ParticleRenderNode,
+        Stat.FrustumCulling,
+        Stat.OpaqueDrawCall,
+        Stat.TransDrawCall, 
+        Stat.ShadowDrawCall, 
+        Stat.DepthCastDrawCall, 
+        Stat.InstanceDrawCall, 
+        Stat.CMDDrawCall, 
+        Stat.BlitDrawCall, 
+        Stat.GPUMemory, 
+        Stat.TextureMemeory, 
+        Stat.RenderTextureMemory, 
+        Stat.BufferMemory,
+        Stat.uploadUniformNum,
+        Stat.T_2DRenderNum,
+        Stat.T_CameraRenderNum
+    ];
     /**
      * @en Memory Show
      * @zh 内存显示
@@ -338,6 +367,9 @@ export class Stat {
     public static bufferMemory: number = 0;
     /**@internal */
     public static uploadUniform: number = 0;
+    /**@internal */
+    public static T_2DRender: number  = 0;
+    public static T_CameraRender: number  = 0;
 
     /**
      * @en The count of dynamic rigid bodies in the physics system.
@@ -562,6 +594,9 @@ export class Stat {
         Stat.textureMemory = LayaGL.renderEngine.getStatisticsInfo(GPUEngineStatisticsInfo.M_ALLTexture);
         Stat.renderTextureMemory = LayaGL.renderEngine.getStatisticsInfo(GPUEngineStatisticsInfo.M_ALLRenderTexture);
         Stat.bufferMemory = LayaGL.renderEngine.getStatisticsInfo(GPUEngineStatisticsInfo.M_GPUBuffer);
+
+        Stat.T_2DRender = this.renderPassStatArray[RenderPassStatisticsInfo.T_2DRender];
+        Stat.T_CameraRender = this.renderPassStatArray[RenderPassStatisticsInfo.T_CameraRender];
     }
 
     /**
