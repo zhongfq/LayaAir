@@ -6,6 +6,7 @@ import { Point } from "../maths/Point";
 import { Rectangle } from "../maths/Rectangle";
 import { Browser } from "../utils/Browser";
 import { Event, ITouchInfo } from "./Event";
+import { Keyboard } from "./Keyboard";
 
 var _isFirstTouch = true;
 const _tempPoint = new Point();
@@ -34,6 +35,17 @@ export interface IWheelEvent {
     altKey?: boolean;
     ctrlKey?: boolean;
     shiftKey?: boolean;
+    metaKey?: boolean;
+}
+
+export interface IKeyEvent {
+    type: string;
+    key: string;
+    code: string;
+    altKey: boolean;
+    shiftKey: boolean;
+    timeStamp: number;
+    ctrlKey?: boolean;
     metaKey?: boolean;
 }
 
@@ -270,16 +282,17 @@ export class InputManager {
             inst.handleMouse(ev, InputType.WHEEL);
         }, { passive: false });
 
-        interface OnWheelCallbackResult {
-            deltaX: number;
-            deltaY: number;
-            deltaZ: number;
-            x: number;
-            y: number;
-            timeStamp: number;
-        }
+       
         const onWheel = Browser.window.tt?.onWheel || Browser.window.wx?.onWheel;
         if (onWheel) {
+            interface OnWheelCallbackResult {
+                deltaX: number;
+                deltaY: number;
+                deltaZ: number;
+                x: number;
+                y: number;
+                timeStamp: number;
+            }
             try {
                 onWheel((result:OnWheelCallbackResult) => {
                     const ev:IWheelEvent =  {
@@ -313,6 +326,59 @@ export class InputManager {
         document.addEventListener("keyup", ev => {
             inst.handleKeys(ev);
         }, true);
+
+        const onKeyUp = Browser.window.tt?.onKeyUp || Browser.window.wx?.onKeyUp;
+        if (onKeyUp) {
+            interface OnKeyUpCallbackResult {
+                key: string;
+                code: string;
+                altKey: string;
+                shiftKey: string;
+                timeStamp: number;
+            }
+            try {
+                onKeyUp((result:OnKeyUpCallbackResult) => {
+                    inst.handleKeys({
+                        type: "keyup",
+                        key: result.key,
+                        code: result.code,
+                        altKey: result.key === Keyboard.Alt || inst._pressKeys.has(Keyboard.Alt),
+                        shiftKey: result.key === Keyboard.Shift || inst._pressKeys.has(Keyboard.Shift),
+                        ctrlKey: result.key === Keyboard.Control || inst._pressKeys.has(Keyboard.Control),
+                        metaKey: result.key === Keyboard.Meta || inst._pressKeys.has(Keyboard.Meta),
+                        timeStamp: result.timeStamp,
+                    });
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        const onKeyDown = Browser.window.tt?.onKeyDown || Browser.window.wx?.onKeyDown;
+        if (onKeyDown) {
+            interface OnKeyDownCallbackResult {
+                key: string;
+                code: string;
+                altKey: string;
+                shiftKey: string;
+                timeStamp: number;
+            }
+            try {
+                onKeyDown((result:OnKeyDownCallbackResult) => {
+                    inst.handleKeys({
+                        type: "keydown",
+                        key: result.key,
+                        code: result.code,
+                        altKey: result.key === Keyboard.Alt || inst._pressKeys.has(Keyboard.Alt),
+                        shiftKey: result.key === Keyboard.Shift || inst._pressKeys.has(Keyboard.Shift),
+                        ctrlKey: result.key === Keyboard.Control || inst._pressKeys.has(Keyboard.Control),
+                        metaKey: result.key === Keyboard.Meta || inst._pressKeys.has(Keyboard.Meta),
+                        timeStamp: result.timeStamp,
+                    });
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
     }
 
     /**
@@ -653,17 +719,17 @@ export class InputManager {
      * @zh 处理按键事件
      * @param ev 按键事件
      */
-    handleKeys(ev: KeyboardEvent): void {
+    handleKeys(ev: KeyboardEvent | IKeyEvent): void {
         let type = ev.type;
-        let keyCode = ev.keyCode;
+        let keyCode = ev.code;
         //判断同时按下的键
         if (type === "keydown") {
-            if (keyCode != 0)
+            if (keyCode)
                 this._pressKeys.add(keyCode);
             this._pressKeys.add(ev.key);
         }
         else if (type === "keyup") {
-            if (keyCode != 0)
+            if (keyCode)
                 this._pressKeys.delete(keyCode);
             this._pressKeys.delete(ev.key);
         }

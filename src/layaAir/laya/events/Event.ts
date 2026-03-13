@@ -1,5 +1,7 @@
 import { Point } from "../maths/Point"
-import { ITouchEvent, IWheelEvent } from "./InputManager";
+import { IKeyEvent, ITouchEvent, IWheelEvent } from "./InputManager";
+import { Keyboard } from "./Keyboard";
+import { KeyCode } from "./KeyCode";
 
 export interface ITouchInfo {
     touchId: number;
@@ -428,7 +430,7 @@ export class Event {
      * @en The original browser event.
      * @zh 原生浏览器事件。
      */
-    nativeEvent: MouseEvent | TouchEvent | WheelEvent | KeyboardEvent | IWheelEvent | ITouchEvent;
+    nativeEvent: MouseEvent | TouchEvent | WheelEvent | KeyboardEvent | IWheelEvent | ITouchEvent | IKeyEvent;
 
     /** @internal */
     _stopped: boolean;
@@ -511,16 +513,16 @@ export class Event {
      * @en The event name.
      * @zh 事件名称。
      */
-    get key(): string {
-        return (<KeyboardEvent>this.nativeEvent).key;
+    get key(): Keyboard {
+        return (<KeyboardEvent>this.nativeEvent).key as Keyboard;
     }
 
     /**
-     * @en The event name index.
-     * @zh 事件名称索引。
+     * @en The code of the key.
+     * @zh 键的代码。
      */
-    get keyCode(): number {
-        return (<KeyboardEvent>this.nativeEvent).keyCode;
+    get code(): KeyCode {
+        return (<KeyboardEvent>this.nativeEvent).code as KeyCode;
     }
 
     /**

@@ -10,6 +10,7 @@ import { Point } from "../maths/Point"
 import { Handler } from "../utils/Handler"
 import { ILaya } from "../../ILaya";
 import { HideFlags } from "../Const";
+import { Keyboard } from "../events/Keyboard";
 
 /**
  * @en The `ColorPicker` component displays a color palette from which the user can select a color.
@@ -291,7 +292,7 @@ export class ColorPicker extends UIComponent {
      * @param e 事件对象。
      */
     private onColorFieldKeyDown(e: Event): void {
-        if (e.keyCode == 13) {
+        if (e.key == Keyboard.Enter) {
             if (this._colorInput.text) this.selectedColor = this._colorInput.text;
             else this.selectedColor = null;
             this.close();
