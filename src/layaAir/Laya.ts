@@ -20,6 +20,7 @@ import { Mouse } from "./laya/utils/Mouse";
 import { MeshVG } from "./laya/webgl/utils/MeshVG";
 import { MeshQuadTexture } from "./laya/webgl/utils/MeshQuadTexture";
 import { MeshTexture } from "./laya/webgl/utils/MeshTexture";
+import { MeshTextureMSDF } from "./laya/webgl/utils/MeshTextureMSDF";
 import { WeakObject } from "./laya/utils/WeakObject";
 import { RenderStateContext } from "./laya/RenderEngine/RenderStateContext";
 import { IStageConfig, LayaEnv } from "./LayaEnv";
@@ -223,6 +224,7 @@ export class Laya {
         MeshQuadTexture.__int__();
         MeshVG.__init__();
         MeshTexture.__init__();
+        MeshTextureMSDF.__init__();
 
         Laya.render = Laya.createRender();
         render = Laya.render;

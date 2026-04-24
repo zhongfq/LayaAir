@@ -12,6 +12,7 @@ export class SubmitBase {
     static KEY_DRAWTEXTURE = 2;
     static KEY_VG = 3;
     static KEY_TRIANGLES = 4;
+    static KEY_TRIANGLES_MSDF = 5;
 
     static RENDERBASE: SubmitBase;
     static ID = 1;
@@ -61,4 +62,3 @@ export class SubmitBase {
 }
 
 SubmitBase.RENDERBASE = new SubmitBase();
-

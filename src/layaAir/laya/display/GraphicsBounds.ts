@@ -23,6 +23,7 @@ import { Pool } from "../utils/Pool"
 import { Utils } from "../utils/Utils"
 import { Graphics } from "./Graphics";
 import { DrawTrianglesCmd } from "./cmd/DrawTrianglesCmd";
+import { DrawTrianglesMSDFCmd } from "./cmd/DrawTrianglesMSDFCmd";
 import { Draw9GridTextureCmd } from "./cmd/Draw9GridTextureCmd";
 import { SaveCmd } from "./cmd/SaveCmd"
 import { DrawEllipseCmd } from "./cmd/DrawEllipseCmd"
@@ -206,6 +207,9 @@ export class GraphicsBounds {
                     break;
                 case DrawTrianglesCmd.ID:
                     addPointArrToRst(rst, (<DrawTrianglesCmd>cmd).getBoundPoints(), tMatrix);
+                    break;
+                case DrawTrianglesMSDFCmd.ID:
+                    addPointArrToRst(rst, (<DrawTrianglesMSDFCmd>cmd).getBoundPoints(), tMatrix);
                     break;
                 case Draw9GridTextureCmd.ID:
                     addPointArrToRst(rst, (<Draw9GridTextureCmd>cmd).getBoundPoints(sp), tMatrix);

@@ -43,9 +43,11 @@ import { SubmitBase } from "../webgl/submit/SubmitBase";
 import { SubmitKey } from "../webgl/submit/SubmitKey";
 import { CharSubmitCache } from "../webgl/text/CharSubmitCache";
 import { MeasureFont } from "../webgl/text/MeasureFont";
+import { MsdfSubmitCache } from "../webgl/text/MsdfSubmitCache";
 import { TextRender } from "../webgl/text/TextRender";
 import { MeshQuadTexture } from "../webgl/utils/MeshQuadTexture";
 import { MeshTexture } from "../webgl/utils/MeshTexture";
+import { MeshTextureMSDF } from "../webgl/utils/MeshTextureMSDF";
 import { MeshVG } from "../webgl/utils/MeshVG";
 import { RenderState2D } from "../webgl/utils/RenderState2D";
 import { Sprite2DGeometry } from "../webgl/utils/Sprite2DGeometry";
@@ -130,6 +132,7 @@ export class Context {
     private _meshQuatTex = new MeshQuadTexture();
     private _meshVG = new MeshVG();
     private _meshTex = new MeshTexture();
+    private _meshTexMSDF = new MeshTextureMSDF();
 
     //public var _vbs:Array = [];	//双buffer管理。TODO 临时删掉，需要mesh中加上
     private _transedPoints: any[] = new Array(8);	//临时的数组，用来计算4个顶点的转换后的位置。
@@ -162,6 +165,8 @@ export class Context {
     _save: ISaveData[] & { _length?: number } = null;
     /**@internal */
     _charSubmitCache: CharSubmitCache | null = null;
+    /**@internal */
+    _msdfSubmitCache: MsdfSubmitCache | null = null;
     /**@internal */
     _saveMark: SaveMark | null = null;
     /**@internal */
@@ -231,6 +236,7 @@ export class Context {
         this._other = ContextParams.DEFAULT;
         this._curMat = Matrix.create();
         this._charSubmitCache = new CharSubmitCache(this);
+        this._msdfSubmitCache = new MsdfSubmitCache();
         //_vb = _vbs[0] = VertexBuffer2D.create( -1);
         this._mesh = this._meshQuatTex;
         this._mesh.clearMesh();
@@ -545,6 +551,7 @@ export class Context {
         this._shader2D.destroy();
         this._shader2D = null;
         this._charSubmitCache.clear();
+        this._msdfSubmitCache.clear();
         this._path = null;
         this._save = null;
         this.sprite = null;
@@ -560,6 +567,7 @@ export class Context {
 
         this.sprite = null;
         this._charSubmitCache && this._charSubmitCache.destroy();
+        this._msdfSubmitCache && this._msdfSubmitCache.destroy();
         if (this.defTexture) {
             this.defTexture.bitmap && this.defTexture.bitmap.destroy();
             this.defTexture.destroy();
@@ -992,7 +1000,54 @@ export class Context {
 
     drawCallOptimize(enable: boolean): boolean {
         this._charSubmitCache.enable(enable, this);
+        this._msdfSubmitCache.enable(enable, this);
         return enable;
+    }
+
+    private _transformMSDFVertices(
+        vertices: Float32Array,
+        x: number,
+        y: number,
+        matrix: Matrix | null
+    ): Float32Array {
+        const worldVertices = new Float32Array(vertices.length);
+        let transform = matrix;
+
+        if (!this._drawTriUseAbsMatrix) {
+            if (!matrix) {
+                tmpMat.a = 1;
+                tmpMat.b = 0;
+                tmpMat.c = 0;
+                tmpMat.d = 1;
+                tmpMat.tx = x;
+                tmpMat.ty = y;
+            } else {
+                tmpMat.a = matrix.a;
+                tmpMat.b = matrix.b;
+                tmpMat.c = matrix.c;
+                tmpMat.d = matrix.d;
+                tmpMat.tx = matrix.tx + x;
+                tmpMat.ty = matrix.ty + y;
+            }
+            Matrix.mul(tmpMat, this._curMat, tmpMat);
+            transform = tmpMat;
+        }
+
+        const m00 = transform.a;
+        const m01 = transform.b;
+        const m10 = transform.c;
+        const m11 = transform.d;
+        const tx = transform.tx;
+        const ty = transform.ty;
+
+        for (let i = 0; i < vertices.length; i += 2) {
+            const vx = vertices[i];
+            const vy = vertices[i + 1];
+            worldVertices[i] = vx * m00 + vy * m10 + tx;
+            worldVertices[i + 1] = vx * m01 + vy * m11 + ty;
+        }
+
+        return worldVertices;
     }
 
     private _drawToRender2D(submit: SubmitBase) {
@@ -1400,6 +1455,103 @@ export class Context {
             this.globalCompositeOperation = oldcomp!;
         }
         //return true;
+    }
+
+    drawTrianglesMSDF(tex: Texture,
+        x: number, y: number,
+        vertices: Float32Array,
+        uvs: Float32Array,
+        indices: Uint16Array,
+        fillColors: Uint32Array,
+        outlineColors: Uint32Array,
+        glowColors: Uint32Array,
+        shadowColors: Uint32Array,
+        packedParamsA: Uint32Array,
+        packedParamsB: Uint32Array,
+        matrix: Matrix, alpha: number | null, blendMode: string, colorNum: number | number[] = 0xffffffff): void {
+
+        if (alpha == null) alpha = 1.0;
+
+        if (!tex._getSource()) {
+            if (this.sprite) {
+                ILaya.systemTimer.callLater(this, this._repaintSprite);
+            }
+            return;
+        }
+        let oldcomp: string | null = null;
+        if (blendMode) {
+            oldcomp = this.globalCompositeOperation;
+            this.globalCompositeOperation = blendMode;
+        }
+
+        const webGLImg = tex.bitmap;
+        const preKey: SubmitKey = this._curSubmit._key;
+        const sameKey = preKey.submitType === SubmitBase.KEY_TRIANGLES_MSDF &&
+            preKey.other === webGLImg.id &&
+            preKey.blendShader == this._nBlendType &&
+            this._mesh.vertexNum + vertices.length / 2 < Context._MAXVERTNUM &&
+            this._curSubmit.material == this._material;
+
+        if (!sameKey) {
+            this._drawToRender2D(this._curSubmit);
+            this._mesh = this._meshTexMSDF;
+        }
+        if (!sameKey) {
+            const submit = this._curSubmit = SubmitBase.create(this, this._mesh,
+                Value2D.create(RenderSpriteData.Texture2D));
+            submit.shaderValue.textureHost = tex;
+            this.fillShaderValue(submit.shaderValue);
+            submit._key.submitType = SubmitBase.KEY_TRIANGLES_MSDF;
+            submit._key.other = webGLImg.id;
+            this._copyClipInfo(submit.shaderValue);
+            submit.clipInfoID = this._clipInfoID;
+        }
+
+        const nAlpha = this._alpha * alpha;
+        const rgba = Array.isArray(colorNum) ? colorNum.map(v => this._mixRGBandAlpha(v, nAlpha)) : this._mixRGBandAlpha(colorNum, nAlpha);
+        if (this._msdfSubmitCache ? this._msdfSubmitCache._enable : false) {
+            this._msdfSubmitCache.add({
+                tex,
+                imgId: webGLImg.id,
+                clipInfoID: this._clipInfoID,
+                clipMatrix: this._globalClipMatrix.clone(),
+                colorFilter: this._colorFiler,
+                material: this._material,
+                blendShader: this._nBlendType,
+                vertices: this._transformMSDFVertices(vertices, x, y, matrix),
+                uvs,
+                indices,
+                fillColors,
+                outlineColors,
+                glowColors,
+                shadowColors,
+                packedParamsA,
+                packedParamsB,
+                color: rgba
+            });
+
+            if (blendMode) {
+                this.globalCompositeOperation = oldcomp!;
+            }
+            return;
+        }
+
+        if (!this._drawTriUseAbsMatrix) {
+            if (!matrix) {
+                tmpMat.a = 1; tmpMat.b = 0; tmpMat.c = 0; tmpMat.d = 1; tmpMat.tx = x; tmpMat.ty = y;
+            } else {
+                tmpMat.a = matrix.a; tmpMat.b = matrix.b; tmpMat.c = matrix.c; tmpMat.d = matrix.d; tmpMat.tx = matrix.tx + x; tmpMat.ty = matrix.ty + y;
+            }
+            Matrix.mul(tmpMat, this._curMat, tmpMat);
+            (this._mesh as MeshTextureMSDF).addData(vertices, uvs, indices, tmpMat || this._curMat, rgba, fillColors, outlineColors, glowColors, shadowColors, packedParamsA, packedParamsB);
+        } else {
+            (this._mesh as MeshTextureMSDF).addData(vertices, uvs, indices, matrix, rgba, fillColors, outlineColors, glowColors, shadowColors, packedParamsA, packedParamsB);
+        }
+        this._curSubmit._numEle += indices.length;
+
+        if (blendMode) {
+            this.globalCompositeOperation = oldcomp!;
+        }
     }
 
     transform(a: number, b: number, c: number, d: number, tx: number, ty: number): void {
@@ -2274,4 +2426,3 @@ class ContextParams {
         return this === ContextParams.DEFAULT ? new ContextParams() : this;
     }
 }
-

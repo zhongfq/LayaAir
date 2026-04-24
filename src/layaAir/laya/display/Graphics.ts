@@ -16,6 +16,7 @@ import { DrawRectCmd } from "./cmd/DrawRectCmd"
 import { DrawTextureCmd } from "./cmd/DrawTextureCmd"
 import { DrawTexturesCmd } from "./cmd/DrawTexturesCmd"
 import { DrawTrianglesCmd } from "./cmd/DrawTrianglesCmd"
+import { DrawTrianglesMSDFCmd } from "./cmd/DrawTrianglesMSDFCmd";
 import { FillTextCmd } from "./cmd/FillTextCmd"
 import { FillTextureCmd } from "./cmd/FillTextureCmd"
 import { RestoreCmd } from "./cmd/RestoreCmd"
@@ -407,7 +408,7 @@ export class Graphics {
      * @param alpha （可选）alpha值。默认为1。
      * @param color （可选）颜色变换。默认为null。
      * @param blendMode （可选）混合模式。默认为null。
-     */
+    */
     drawTriangles(texture: Texture, x: number, y: number, vertices: Float32Array, uvs: Float32Array, indices: Uint16Array, matrix: Matrix | null = null,
         alpha: number = 1, color: string | number | number[] = null, blendMode: string | null = null): DrawTrianglesCmd {
         return this.addCmd(DrawTrianglesCmd.create(texture, x, y, vertices, uvs, indices, matrix, alpha, color, blendMode));
@@ -418,6 +419,29 @@ export class Graphics {
         const cmd = DrawTrianglesCmd.create(texture, x, y, vertices, uvs, indices, matrix, alpha, color, blendMode);
         cmd.drawTriUseAbsMatrix = true;
         return this.addCmd(cmd);
+    }
+
+    drawTrianglesMSDF(texture: Texture, x: number, y: number, vertices: Float32Array, uvs: Float32Array, indices: Uint16Array,
+        fillColors: Uint32Array, outlineColors: Uint32Array, glowColors: Uint32Array, shadowColors: Uint32Array, packedParamsA: Uint32Array, packedParamsB: Uint32Array, matrix: Matrix | null = null,
+        alpha: number = 1, color: string | number | number[] = null, blendMode: string | null = null): DrawTrianglesMSDFCmd {
+        return this.addCmd(DrawTrianglesMSDFCmd.create(
+            texture,
+            x,
+            y,
+            vertices,
+            uvs,
+            indices,
+            fillColors,
+            outlineColors,
+            glowColors,
+            shadowColors,
+            packedParamsA,
+            packedParamsB,
+            matrix,
+            alpha,
+            color,
+            blendMode
+        ));
     }
 
     /**
